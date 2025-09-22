@@ -1,0 +1,32 @@
+{
+  "name": "golden-horse-shipping",
+  "version": "1.0.0",
+  "description": "Golden Horse Shipping - Complete shipping management system with PostgreSQL support",
+  "main": "index.js",
+  "scripts": {
+    "dev": "docker-compose up",
+    "build": "docker-compose build",
+    "start": "docker-compose up -d",
+    "stop": "docker-compose down",
+    "test": "npm run test --prefix backend",
+    "migrate": "npm run migration:run-prod --prefix backend",
+    "test-db": "npm run test-db --prefix backend"
+  },
+  "keywords": [
+    "shipping",
+    "logistics",
+    "postgresql",
+    "docker",
+    "nestjs",
+    "nextjs"
+  ],
+  "author": "Golden Horse Shipping",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/feras995h/golden-horse-shipping.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

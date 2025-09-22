@@ -1,0 +1,48 @@
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fde047;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#facc15;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#eab308;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ca8a04;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="goldGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#facc15;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#eab308;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ca8a04;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Horse head profile facing right -->
+  <path d="M80 120 C85 110, 95 105, 110 108 C125 112, 140 120, 155 135 C170 150, 180 170, 185 190 C188 205, 185 220, 175 230 C165 240, 150 245, 135 240 C120 235, 110 225, 105 210 C100 195, 98 180, 100 165 C102 150, 105 135, 110 125 C115 115, 120 110, 125 108 L130 106 C135 105, 140 106, 145 108 C150 110, 155 113, 160 118 C165 123, 168 130, 170 138 C172 146, 172 154, 170 162 C168 170, 164 177, 158 183 C152 189, 144 193, 135 195" fill="url(#goldGradient)" stroke="#ca8a04" stroke-width="1.5"/>
+  
+  <!-- Horse mane flowing -->
+  <path d="M75 115 C70 105, 65 95, 62 85 C60 75, 62 65, 68 58 C74 51, 82 48, 90 50 C98 52, 104 58, 108 66 C112 74, 114 83, 115 92 C116 101, 116 110, 115 119" fill="url(#goldGradient2)" stroke="#ca8a04" stroke-width="1"/>
+  
+  <path d="M85 110 C80 100, 75 90, 72 80 C70 70, 72 60, 78 53 C84 46, 92 43, 100 45 C108 47, 114 53, 118 61 C122 69, 124 78, 125 87" fill="url(#goldGradient2)" stroke="#ca8a04" stroke-width="1"/>
+  
+  <path d="M95 108 C90 98, 85 88, 82 78 C80 68, 82 58, 88 51 C94 44, 102 41, 110 43 C118 45, 124 51, 128 59 C132 67, 134 76, 135 85" fill="url(#goldGradient2)" stroke="#ca8a04" stroke-width="1"/>
+  
+  <!-- Horse ear -->
+  <path d="M105 115 C100 108, 98 100, 102 95 C106 90, 114 92, 118 98 C122 104, 120 112, 114 116 C110 118, 107 117, 105 115 Z" fill="url(#goldGradient)" stroke="#ca8a04" stroke-width="0.8"/>
+  
+  <!-- Horse nose/muzzle -->
+  <path d="M170 200 C175 205, 180 212, 182 220 C184 228, 180 236, 174 240 C168 244, 160 242, 156 236 C152 230, 154 222, 160 218 C164 215, 168 214, 170 200 Z" fill="url(#goldGradient)" stroke="#ca8a04" stroke-width="1"/>
+  
+  <!-- Eye -->
+  <circle cx="135" cy="145" r="6" fill="#1e293b" stroke="#ca8a04" stroke-width="0.8"/>
+  <circle cx="136" cy="143" r="2" fill="white"/>
+  
+  <!-- Nostril -->
+  <ellipse cx="175" cy="215" rx="3" ry="4" fill="#ca8a04"/>
+  
+  <!-- Circular arrow around horse (movement/shipping concept) -->
+  <path d="M50 150 A100 100 0 0 1 250 150 A100 100 0 0 1 50 150" fill="none" stroke="url(#goldGradient)" stroke-width="3" stroke-dasharray="8,4" opacity="0.6"/>
+  
+  <!-- Arrow heads on the circle -->
+  <path d="M245 145 L255 150 L245 155 Z" fill="url(#goldGradient)" opacity="0.8"/>
+  <path d="M55 155 L45 150 L55 145 Z" fill="url(#goldGradient)" opacity="0.8"/>
+  
+  <!-- Bottom decorative line -->
+  <rect x="50" y="280" width="200" height="3" fill="url(#goldGradient)" rx="1.5"/>
+</svg>

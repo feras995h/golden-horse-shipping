@@ -1,0 +1,241 @@
+{
+  "site": {
+    "title": "Golden Horse Shipping",
+    "description": "Professional shipping services from China to Libya",
+    "tagline": "Your trusted partner in shipping and logistics"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "services": "Services",
+    "pricing": "Pricing",
+    "tracking": "Tracking",
+    "contact": "Contact",
+    "ads": "Offers",
+    "admin": "Admin Panel",
+    "language": "العربية"
+  },
+  "hero": {
+    "title": "Golden Horse Shipping",
+    "subtitle": "Your trusted partner for shipping from China to Libya",
+    "description": "Professional shipping services with competitive prices and reliable delivery times. We handle sea, air, and land shipping with full tracking and insurance.",
+    "cta": "Get Quote",
+    "trackCta": "Track Shipment",
+    "trackingPlaceholder": "Enter tracking number or client ID",
+    "trackButton": "Track Shipment",
+    "getQuote": "Get Quote",
+    "contactButton": "Contact Us",
+    "servicesButton": "Our Services"
+  },
+  "services": {
+    "title": "Our Services",
+    "subtitle": "We provide integrated commercial and logistics services",
+    "sea": {
+      "title": "Sea Shipping",
+      "description": "Economical shipping solution for large cargo"
+    },
+    "air": {
+      "title": "Air Shipping",
+      "description": "Fast and secure shipping for urgent cargo"
+    },
+    "land": {
+      "title": "Land Shipping",
+      "description": "Flexible delivery solutions within Libya"
+    }
+  },
+  "features": {
+    "title": "Why Choose Us",
+    "tracking": {
+      "title": "Real-time Tracking",
+      "description": "Track your shipments 24/7 with our advanced tracking system"
+    },
+    "insurance": {
+      "title": "Full Insurance",
+      "description": "Complete protection for your cargo during transit"
+    },
+    "customs": {
+      "title": "Customs Clearance",
+      "description": "Fast and professional customs clearance services"
+    },
+    "secure": {
+      "title": "Secure Shipping",
+      "description": "Ensuring your cargo arrives safely"
+    },
+    "competitive": {
+      "title": "Competitive Prices",
+      "description": "Best prices thanks to our direct purchasing network"
+    },
+    "support": {
+      "title": "24/7 Support",
+      "description": "Round-the-clock customer support for all your needs"
+    }
+  },
+  "tracking": {
+    "title": "Track Your Shipment",
+    "enterNumber": "Enter tracking number or client ID",
+    "search": "Search",
+    "notFound": "Shipment not found. Please check the tracking number.",
+    "status": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "in_transit": "In Transit",
+      "at_port": "At Port",
+      "customs_clearance": "Customs Clearance",
+      "delivered": "Delivered",
+      "delayed": "Delayed",
+      "cancelled": "Cancelled"
+    },
+    "payment": {
+      "paid": "Paid",
+      "partial": "Partially Paid",
+      "unpaid": "Unpaid"
+    }
+  },
+  "contact": {
+    "title": "Contact Us",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "hours": "Working Hours",
+    "form": {
+      "name": "Full Name",
+      "email": "Email",
+      "phone": "Phone",
+      "message": "Message",
+      "send": "Send Message"
+    }
+  },
+  "footer": {
+    "company": "Golden Horse Shipping",
+    "description": "Your trusted partner for shipping from China to Libya",
+    "quickLinks": "Quick Links",
+    "contactInfo": "Contact Information",
+    "followUs": "Follow Us",
+    "about": "About",
+    "contact": "Contact",
+    "rights": "All rights reserved"
+  },
+  "about": {
+    "title": "About Us",
+    "subtitle": "Golden Horse Company",
+    "description": "A Libyan company specialized in providing international trade services, established in the People's Republic of China as one of Al-Morjan Group's arms.",
+    "vision": {
+      "title": "Our Vision",
+      "content": "To be Libya's leading commercial partner in China, offering reliable and comprehensive trade and import services that connect the Chinese market with MENA efficiently, with quality and transparency."
+    },
+    "mission": {
+      "title": "Our Mission",
+      "content": "To deliver a smooth and safe import experience through integrated solutions starting from sourcing the right supplier to delivering the product to its final destination, while maintaining quality and transparency at every step."
+    },
+    "values": {
+      "title": "Our Core Values",
+      "transparency": "Transparency: We believe that trust begins with clarity",
+      "responsibility": "Responsibility: We commit to our customers from contracting to delivery",
+      "professionalism": "Professionalism: Trained teams and precise procedures at every stage",
+      "flexibility": "Flexibility: Tailored solutions that adapt to changing market needs",
+      "guarantee": "Guarantee of rights: Legal contracts and real quality guarantees"
+    }
+  },
+
+  "admin": {
+    "dashboard": "Dashboard",
+    "clients": "Clients",
+    "shipments": "Shipments",
+    "ads": "Advertisements",
+    "reports": "Reports",
+    "settings": "Settings",
+    "login": "Login",
+    "logout": "Logout",
+    "profile": "Profile",
+    "users": "Users",
+    "vessels": "Vessel Tracking",
+    "notifications": "Notifications"
+  },
+  "forms": {
+    "required": "Required field",
+    "invalidEmail": "Invalid email address",
+    "invalidPhone": "Invalid phone number",
+    "passwordMismatch": "Passwords do not match",
+    "minLength": "Minimum {count} characters required",
+    "maxLength": "Maximum {count} characters allowed"
+  },
+  "actions": {
+    "create": "Create",
+    "update": "Update",
+    "delete": "Delete",
+    "view": "View",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "reset": "Reset",
+    "clear": "Clear",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "download": "Download",
+    "upload": "Upload"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "published": "Published",
+    "draft": "Draft",
+    "archived": "Archived"
+  },
+  "messages": {
+    "success": "Operation completed successfully",
+    "error": "An error occurred",
+    "warning": "Warning",
+    "info": "Information",
+    "confirm": "Are you sure?",
+    "deleteConfirm": "Are you sure you want to delete this item?",
+    "unsavedChanges": "You have unsaved changes",
+    "loading": "Loading...",
+    "noData": "No data available",
+    "networkError": "Network error occurred",
+    "unauthorized": "Unauthorized access",
+    "forbidden": "Access forbidden",
+    "notFound": "Item not found"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "clear": "Clear",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "all": "All",
+    "none": "None",
+    "select": "Select",
+    "optional": "Optional",
+    "required": "Required",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "date": "Date",
+    "time": "Time",
+    "name": "Name",
+    "description": "Description",
+    "status": "Status",
+    "type": "Type",
+    "category": "Category",
+    "priority": "Priority",
+    "notes": "Notes"
+  }
+}

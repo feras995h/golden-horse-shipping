@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: golden-horse-backend
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: ${DATABASE_URL}
+      # Fallback individual variables
+      DB_TYPE: postgres
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_SSL: ${DB_SSL:-true}
+      DB_SSL_REJECT_UNAUTHORIZED: ${DB_SSL_REJECT_UNAUTHORIZED:-false}
+      DB_SYNCHRONIZE: false
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: 7d
+      # FRONTEND_URL is used by CORS in production (set your real domain in deployment)
+      FRONTEND_URL: ${FRONTEND_URL}
+      # Uploads path inside container
+      UPLOAD_PATH: /app/uploads
+    volumes:
+      - backend_uploads:/app/uploads
+    expose:
+      - "3001"
+    networks:
+      - golden-horse-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: golden-horse-frontend
+    environment:
+      NODE_ENV: production
+      # The frontend talks to backend via internal service DNS
+      NEXT_PUBLIC_API_URL: http://backend:3001/api
+    depends_on:
+      - backend
+    expose:
+      - "3000"
+    networks:
+      - golden-horse-network
+    restart: unless-stopped
+
+  reverse-proxy:
+    image: nginx:alpine
+    container_name: golden-horse-proxy
+    volumes:
+      - ./infra/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+      # TLS to be added later when domain is ready
+      # - "443:443"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - golden-horse-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  backend_uploads:
+
+networks:
+  golden-horse-network:
+    driver: bridge

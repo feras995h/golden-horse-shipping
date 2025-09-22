@@ -1,67 +1,62 @@
 # Multi-stage build for Golden Horse Shipping
-FROM node:18-alpine AS base
+FROM node:22-alpine AS base
 
-# Install dependencies for both backend and frontend
-FROM base AS deps
+# Install system dependencies
+RUN apk add --no-cache libc6-compat curl
+
+# Set working directory
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
-COPY backend/package*.json ./backend/
-COPY frontend/package*.json ./frontend/
+COPY package.json package-lock.json* ./
 
-# Install dependencies (including dev dependencies for building)
-ENV NODE_ENV=development
-RUN npm ci
+# Install dependencies
+FROM base AS deps
+RUN npm ci --only=production && npm cache clean --force
 
 # Build stage
 FROM base AS builder
 WORKDIR /app
 
-# Copy dependencies
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/backend/node_modules ./backend/node_modules
-COPY --from=deps /app/frontend/node_modules ./frontend/node_modules
+# Copy package files and install all dependencies
+COPY package.json package-lock.json* ./
+RUN npm ci
 
 # Copy source code
 COPY . .
 
-# Build backend
-RUN cd backend && npm run build
-
-# Build frontend
-RUN cd frontend && npm run build
+# Build the application
+RUN npm run build
 
 # Production stage
 FROM base AS runner
 WORKDIR /app
 
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nestjs
+RUN adduser --system --uid 1001 nextjs
 
-# Copy built applications
-COPY --from=builder --chown=nestjs:nodejs /app/backend/dist ./backend/dist
-COPY --from=builder --chown=nestjs:nodejs /app/frontend/.next ./frontend/.next
-COPY --from=builder --chown=nestjs:nodejs /app/frontend/public ./frontend/public
+# Copy built application
+COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
-# Copy package files for production
-COPY --from=deps /app/backend/node_modules ./backend/node_modules
-COPY --from=deps /app/frontend/node_modules ./frontend/node_modules
-
-# Copy production scripts
-COPY backend/package*.json ./backend/
-COPY frontend/package*.json ./frontend/
+# Create uploads directory
+RUN mkdir -p /app/uploads && chown -R nextjs:nodejs /app/uploads
 
 # Switch to non-root user
-USER nestjs
+USER nextjs
 
-# Expose ports
-EXPOSE 3001 3000
+# Expose port
+EXPOSE 3000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3001/api/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
 
-# Start backend (frontend will be served statically)
-CMD ["npm", "run", "start"]
+# Start the application
+CMD ["npm", "run", "start:prod"]

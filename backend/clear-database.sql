@@ -45,3 +45,4 @@ DELETE FROM sqlite_sequence WHERE name='notifications';
 
 -- عرض رسالة النجاح
 SELECT 'تم إفراغ قاعدة البيانات بنجاح!' as message;
+

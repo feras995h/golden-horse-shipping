@@ -43,3 +43,4 @@ try {
   console.error('❌ خطأ في إنشاء ملف .env:', error.message);
   process.exit(1);
 }
+

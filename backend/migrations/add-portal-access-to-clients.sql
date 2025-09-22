@@ -12,3 +12,4 @@ CREATE INDEX IF NOT EXISTS idx_clients_has_portal_access ON clients(has_portal_a
 
 -- Update existing clients to have portal access disabled by default
 UPDATE clients SET has_portal_access = 0 WHERE has_portal_access IS NULL;
+

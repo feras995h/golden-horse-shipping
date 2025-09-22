@@ -8,7 +8,7 @@ cmds = ["npm ci"]
 cmds = ["npm run build"]
 
 [start]
-cmd = "npx nest start"
+cmd = "node_modules/.bin/nest start"
 
 [variables]
 NODE_ENV = "production"

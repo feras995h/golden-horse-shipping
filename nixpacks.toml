@@ -8,7 +8,7 @@ cmds = ["npm ci"]
 cmds = ["npm run build"]
 
 [start]
-cmd = "npx ts-node -r tsconfig-paths/register backend/src/main.ts"
+cmd = "node_modules/.bin/ts-node -r tsconfig-paths/register backend/src/main.ts"
 
 [variables]
 NODE_ENV = "production"

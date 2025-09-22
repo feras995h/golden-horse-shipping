@@ -66,3 +66,4 @@ db.exec(migrationSQL, (err) => {
     });
   });
 });
+

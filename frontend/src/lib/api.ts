@@ -91,6 +91,9 @@ export const clientsAPI = {
   
   getStats: () =>
     api.get('/clients/stats'),
+
+  changePassword: (id: string, data: { newPassword: string }) =>
+    api.patch(`/clients/${id}/change-password`, data),
 };
 
 // Shipments API

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { GetServerSideProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
@@ -79,7 +79,7 @@ const ShipmentDetails = () => {
   const [isRefreshingTracking, setIsRefreshingTracking] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchShipmentDetails = async () => {
+  const fetchShipmentDetails = useCallback(async () => {
     try {
       const token = localStorage.getItem('customerToken');
       if (!token) {
@@ -109,7 +109,7 @@ const ShipmentDetails = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router, id]);
 
   const refreshTracking = async () => {
     if (!shipmentData?.shipment.enableTracking) return;

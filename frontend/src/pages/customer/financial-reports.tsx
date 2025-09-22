@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { GetStaticProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
@@ -65,7 +65,7 @@ const CustomerFinancialReports = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState('6months');
 
-  const fetchReportData = async () => {
+  const fetchReportData = useCallback(async () => {
     try {
       const token = localStorage.getItem('customerToken');
       if (!token) {
@@ -96,7 +96,7 @@ const CustomerFinancialReports = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router, selectedPeriod]);
 
   useEffect(() => {
     fetchReportData();

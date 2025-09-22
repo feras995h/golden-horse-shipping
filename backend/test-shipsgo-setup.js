@@ -60,3 +60,4 @@ console.log('📋 الخطوات التالية:');
 console.log('1. أعد تشغيل الخادم: npm run start:dev');
 console.log('2. اختبر API: curl http://localhost:3001/api/shipsgo-tracking/health');
 console.log('3. اختبر التتبع من الواجهة الأمامية');
+

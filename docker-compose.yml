@@ -1,82 +1,40 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: golden-horse-db
-    environment:
-      POSTGRES_DB: golden_horse_shipping
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - golden-horse-network
-    restart: unless-stopped
-
-  # Backend API
-  backend:
+  app:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
-    container_name: golden-horse-backend
+    container_name: golden-horse-app
     environment:
       NODE_ENV: production
-      PORT: 3001
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USERNAME: postgres
-      DB_PASSWORD: password
-      DB_NAME: golden_horse_shipping
-      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL}
+      # Fallback individual variables
+      DB_TYPE: postgres
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_SSL: ${DB_SSL:-true}
+      DB_SSL_REJECT_UNAUTHORIZED: ${DB_SSL_REJECT_UNAUTHORIZED:-false}
+      DB_SYNCHRONIZE: false
+      JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: 7d
-    ports:
-      - "3001:3001"
-    depends_on:
-      - postgres
+      FRONTEND_URL: ${FRONTEND_URL}
+      UPLOAD_PATH: /app/uploads
+      SHIPSGO_API_KEY: ${SHIPSGO_API_KEY}
     volumes:
-      - ./backend/uploads:/app/uploads
-    networks:
-      - golden-horse-network
-    restart: unless-stopped
-
-  # Frontend
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: golden-horse-frontend
-    environment:
-      NODE_ENV: production
-      NEXT_PUBLIC_API_URL: http://localhost:3001/api
+      - app_uploads:/app/uploads
     ports:
       - "3000:3000"
-    depends_on:
-      - backend
-    networks:
-      - golden-horse-network
     restart: unless-stopped
-
-  # Redis (for caching and sessions)
-  redis:
-    image: redis:7-alpine
-    container_name: golden-horse-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - golden-horse-network
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
-  postgres_data:
-  redis_data:
-
-networks:
-  golden-horse-network:
-    driver: bridge
+  app_uploads:

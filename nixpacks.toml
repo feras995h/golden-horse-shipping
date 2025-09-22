@@ -8,7 +8,8 @@ cmds = ["npm ci"]
 cmds = ["npm run build"]
 
 [start]
-cmd = "npm run start"
+cmd = "npm run start:prod"
 
 [variables]
 NODE_ENV = "production"
+PORT = "3000"

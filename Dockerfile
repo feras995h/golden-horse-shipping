@@ -10,7 +10,8 @@ COPY package*.json ./
 COPY backend/package*.json ./backend/
 COPY frontend/package*.json ./frontend/
 
-# Install dependencies
+# Install dependencies (including dev dependencies for building)
+ENV NODE_ENV=development
 RUN npm ci
 
 # Build stage

@@ -4,10 +4,12 @@
   "description": "Golden Horse Shipping - Complete shipping management system with PostgreSQL support",
   "main": "index.js",
   "scripts": {
+    "build": "npm run build --prefix backend && npm run build --prefix frontend",
+    "start": "npm run start:prod --prefix backend",
     "dev": "docker-compose up",
-    "build": "docker-compose build",
-    "start": "docker-compose up -d",
-    "stop": "docker-compose down",
+    "docker:build": "docker-compose build",
+    "docker:start": "docker-compose up -d",
+    "docker:stop": "docker-compose down",
     "test": "npm run test --prefix backend",
     "migrate": "npm run migration:run-prod --prefix backend",
     "test-db": "npm run test-db --prefix backend"

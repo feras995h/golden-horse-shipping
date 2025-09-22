@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { GetStaticProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
@@ -60,7 +60,7 @@ const CustomerDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       const token = localStorage.getItem('customerToken');
       if (!token) {
@@ -87,7 +87,7 @@ const CustomerDashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
 
   const getStatusColor = (status: string) => {
     switch (status) {

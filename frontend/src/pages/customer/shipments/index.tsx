@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { GetStaticProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
@@ -54,7 +54,7 @@ const CustomerShipments = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const fetchShipments = async () => {
+  const fetchShipments = useCallback(async () => {
     try {
       const token = localStorage.getItem('customerToken');
       if (!token) {
@@ -86,7 +86,7 @@ const CustomerShipments = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router, currentPage]);
 
   const getStatusColor = (status: string) => {
     switch (status) {

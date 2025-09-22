@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { GetStaticProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
@@ -67,7 +67,7 @@ const CustomerFinancial = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMethod, setFilterMethod] = useState('all');
 
-  const fetchFinancialData = async () => {
+  const fetchFinancialData = useCallback(async () => {
     try {
       const token = localStorage.getItem('customerToken');
       if (!token) {
@@ -99,7 +99,7 @@ const CustomerFinancial = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router, currentPage]);
 
   useEffect(() => {
     fetchFinancialData();

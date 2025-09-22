@@ -32,7 +32,7 @@ const ChangePasswordPage = () => {
   // Fetch client data
   const { data: client, isLoading: clientLoading } = useQuery(
     ['client', id],
-    () => clientsAPI.getClient(id as string),
+    () => clientsAPI.getById(id as string),
     {
       enabled: !!id,
       onError: () => {
@@ -141,7 +141,7 @@ const ChangePasswordPage = () => {
   return (
     <AdminLayout>
       <Head>
-        <title>تغيير كلمة المرور - {client.fullName}</title>
+        <title>تغيير كلمة المرور - {client.data.fullName}</title>
       </Head>
 
       <div className="space-y-6">
@@ -156,7 +156,7 @@ const ChangePasswordPage = () => {
             </Link>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">تغيير كلمة المرور</h1>
-              <p className="text-gray-600">للعامل: {client.fullName}</p>
+              <p className="text-gray-600">للعامل: {client.data.fullName}</p>
             </div>
           </div>
         </div>
@@ -168,10 +168,10 @@ const ChangePasswordPage = () => {
               <User className="h-6 w-6 text-gold-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">{client.fullName}</h3>
-              <p className="text-gray-600">{client.email}</p>
-              {client.trackingNumber && (
-                <p className="text-sm text-gold-600">رقم التتبع: {client.trackingNumber}</p>
+              <h3 className="text-lg font-semibold text-gray-900">{client.data.fullName}</h3>
+              <p className="text-gray-600">{client.data.email}</p>
+              {client.data.trackingNumber && (
+                <p className="text-sm text-gold-600">رقم التتبع: {client.data.trackingNumber}</p>
               )}
             </div>
           </div>

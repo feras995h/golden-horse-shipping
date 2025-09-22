@@ -22,7 +22,8 @@ import {
   TrendingUp,
   Clock,
   CheckCircle,
-  XCircle
+  XCircle,
+  Key
 } from 'lucide-react';
 
 const ClientDetailsPage = () => {

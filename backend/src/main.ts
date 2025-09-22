@@ -19,7 +19,7 @@ async function bootstrap() {
   const isProd = process.env.NODE_ENV === 'production';
   app.enableCors({
     origin: isProd
-      ? (process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : false)
+      ? (process.env.COOLIFY_URL ? [process.env.COOLIFY_URL] : true)
       : ['http://localhost:3000', 'http://127.0.0.1:3000'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
@@ -49,7 +49,7 @@ async function bootstrap() {
     SwaggerModule.setup('api/docs', app, document);
   }
 
-  const port = process.env.PORT || 3001;
+  const port = process.env.PORT || 3000;
   await app.listen(port);
 
   console.log(`🚀 Golden Horse Shipping API is running on: http://localhost:${port}`);

@@ -96,6 +96,13 @@ export class ReportsController {
     return this.reportsService.getDashboardStats();
   }
 
+  @Get('advanced-stats')
+  @ApiOperation({ summary: 'Get advanced statistics' })
+  @ApiResponse({ status: 200, description: 'Advanced stats retrieved successfully' })
+  getAdvancedStats() {
+    return this.reportsService.getAdvancedStats();
+  }
+
   @Get('delayed-shipments')
   @ApiOperation({ summary: 'Get delayed shipments' })
   @ApiResponse({ status: 200, description: 'Delayed shipments retrieved successfully' })

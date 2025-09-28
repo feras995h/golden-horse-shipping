@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useMemo } from 'react';
 import { GetStaticProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
@@ -8,6 +8,10 @@ import { useQuery } from 'react-query';
 import AdminLayout from '@/components/Admin/Layout/AdminLayout';
 import { withAuth } from '@/lib/auth';
 import { reportsAPI, shipmentsAPI, clientsAPI, adsAPI } from '@/lib/api';
+import StatCard from '@/components/ui/Cards/StatCard';
+import DashboardChart from '@/components/ui/Charts/DashboardChart';
+import FadeIn, { Stagger, ScaleIn } from '@/components/ui/Animations/FadeIn';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import {
   Users,
   Package,
@@ -116,44 +120,57 @@ const AdminDashboard = () => {
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const statCards = [
+  const statCardsData = useMemo(() => [
     {
       title: 'إجمالي العملاء',
       value: stats?.totalClients || 0,
-      change: `${stats?.activeClients || 0} نشط`,
       icon: Users,
-      color: 'from-blue-500 to-blue-600',
-      bgColor: 'bg-blue-50',
-      link: '/admin/clients'
+      color: 'blue' as const,
+      change: {
+        value: 12,
+        type: 'increase' as const
+      }
     },
     {
       title: 'إجمالي الشحنات',
       value: stats?.totalShipments || 0,
-      change: `${stats?.shipmentsInTransit || 0} في الطريق`,
       icon: Package,
-      color: 'from-green-500 to-green-600',
-      bgColor: 'bg-green-50',
-      link: '/admin/shipments'
+      color: 'green' as const,
+      change: {
+        value: 8,
+        type: 'increase' as const
+      }
     },
     {
       title: 'الإيرادات الشهرية',
       value: `$${stats?.monthlyRevenue?.toLocaleString() || 0}`,
-      change: `$${stats?.totalRevenue?.toLocaleString() || 0} إجمالي`,
       icon: DollarSign,
-      color: 'from-gold-500 to-gold-600',
-      bgColor: 'bg-gold-50',
-      link: '/admin/reports'
+      color: 'gold' as const,
+      change: {
+        value: 15,
+        type: 'increase' as const
+      }
     },
     {
       title: 'الإعلانات النشطة',
       value: stats?.activeAds || 0,
-      change: `${stats?.totalAdViews || 0} مشاهدة`,
       icon: Megaphone,
-      color: 'from-purple-500 to-purple-600',
-      bgColor: 'bg-purple-50',
-      link: '/admin/ads'
+      color: 'purple' as const,
+      change: {
+        value: 5,
+        type: 'decrease' as const
+      }
     }
-  ];
+  ], [stats]);
+
+  const chartData = useMemo(() => [
+    { name: 'يناير', value: 4000 },
+    { name: 'فبراير', value: 3000 },
+    { name: 'مارس', value: 2000 },
+    { name: 'أبريل', value: 2780 },
+    { name: 'مايو', value: 1890 },
+    { name: 'يونيو', value: 2390 },
+  ], []);
 
   const alertCards = [
     {
@@ -197,73 +214,83 @@ const AdminDashboard = () => {
 
       <div className="space-y-8 max-w-7xl mx-auto">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <FadeIn direction="up" delay={100}>
           {statsLoading ? (
-            // Skeleton loading for stats cards
-            Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="flex items-center justify-between rtl:flex-row-reverse">
-                  <div className="flex-1 min-w-0">
-                    <div className="skeleton h-4 w-24 mb-2"></div>
-                    <div className="skeleton h-8 w-16 mb-1"></div>
-                    <div className="skeleton h-4 w-20"></div>
-                  </div>
-                  <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center flex-shrink-0 ml-4 rtl:ml-0 rtl:mr-4">
-                    <div className="skeleton h-6 w-6"></div>
-                  </div>
-                </div>
-              </div>
-            ))
+            <div className="flex justify-center items-center py-8">
+              <LoadingSpinner text="جاري تحميل الإحصائيات..." />
+            </div>
           ) : (
-            statCards.map((card, index) => (
-              <Link key={index} href={card.link} className="block">
-                <div className={`${card.bgColor} rounded-2xl p-6 hover:scale-105 transition-transform duration-200 cursor-pointer shadow-sm hover:shadow-md border border-gray-100`}>
-                  <div className="flex items-center justify-between rtl:flex-row-reverse">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-600 mb-2 truncate">
-                        {card.title}
-                      </p>
-                      <p className="text-2xl font-bold text-gray-900 mb-1">
-                        {card.value}
-                      </p>
-                      <p className="text-sm text-gray-500 truncate">
-                        {card.change}
-                      </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              <Stagger staggerDelay={150}>
+                {statCardsData.map((card, index) => (
+                  <StatCard
+                    key={index}
+                    title={card.title}
+                    value={card.value}
+                    icon={card.icon}
+                    color={card.color}
+                    change={card.change}
+                  />
+                ))}
+              </Stagger>
+            </div>
+          )}
+        </FadeIn>
+
+        {/* Charts Section */}
+        <FadeIn direction="up" delay={300}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DashboardChart
+              data={chartData}
+              type="area"
+              title="الإيرادات الشهرية"
+              height={300}
+            />
+            <DashboardChart
+              data={[
+                { name: 'مكتملة', value: (stats?.totalShipments || 0) - (stats?.shipmentsInTransit || 0) },
+                { name: 'في الطريق', value: stats?.shipmentsInTransit || 0 },
+                { name: 'متأخرة', value: stats?.delayedShipments || 0 }
+              ]}
+              type="pie"
+              title="حالة الشحنات"
+              height={300}
+            />
+          </div>
+        </FadeIn>
+
+        {/* Alert Cards */}
+        <FadeIn direction="up" delay={500}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+            {alertCards.map((alert, index) => (
+              <Link key={index} href={alert.link} className="block group">
+                <div className="relative bg-white/80 backdrop-blur-md border border-gold-200/30 rounded-2xl p-6 hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden">
+                  {/* Background gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-red-50/30 via-transparent to-yellow-50/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  
+                  <div className="relative flex items-center rtl:flex-row-reverse">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-gold-400 to-gold-600 rounded-xl blur-sm opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                      <alert.icon className={`relative h-8 w-8 ${alert.color} ml-4 rtl:ml-0 rtl:mr-4 flex-shrink-0 group-hover:scale-110 transition-transform duration-300`} />
                     </div>
-                    <div className={`w-12 h-12 bg-gradient-to-r ${card.color} rounded-xl flex items-center justify-center flex-shrink-0 ml-4 rtl:ml-0 rtl:mr-4`}>
-                      <card.icon className="h-6 w-6 text-white" />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1 truncate group-hover:text-gold-800 transition-colors duration-300">
+                        {alert.title}
+                      </h3>
+                      <div className={`text-2xl font-bold ${alert.color} group-hover:text-gold-700 transition-colors duration-300`}>
+                        {statsLoading ? (
+                          <div className="h-8 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-12 animate-pulse"></div>
+                        ) : (
+                          alert.count
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               </Link>
-            ))
-          )}
-        </div>
-
-        {/* Alert Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {alertCards.map((alert, index) => (
-            <Link key={index} href={alert.link} className="block">
-              <div className={`${alert.bgColor} border ${alert.borderColor} rounded-xl p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer`}>
-                <div className="flex items-center rtl:flex-row-reverse">
-                  <alert.icon className={`h-8 w-8 ${alert.color} ml-4 rtl:ml-0 rtl:mr-4 flex-shrink-0`} />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1 truncate">
-                      {alert.title}
-                    </h3>
-                    <div className={`text-2xl font-bold ${alert.color}`}>
-                      {statsLoading ? (
-                        <div className="skeleton h-8 w-12"></div>
-                      ) : (
-                        alert.count
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+            ))}
+          </div>
+        </FadeIn>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Recent Shipments */}

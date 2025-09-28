@@ -8,6 +8,14 @@ import {
   ShipsGoAuthException,
   ShipsGoNotFoundException
 } from '../../common/exceptions/shipsgo.exception';
+import {
+  ShipsGoV2TrackingResponse,
+  ShipsGoV2Milestone,
+  ShipsGoV2RoutePoint,
+  ShipsGoV2MapResponse,
+  ShipsGoV2VesselInfo,
+  ShipsGoV2TrackRequest
+} from './dto/v2-types.dto';
 
 export interface ShipsGoTrackingResponse {
   success: boolean;
@@ -103,8 +111,9 @@ export class ShipsGoTrackingService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
+    // Use real API credentials provided by user
     this.shipsGoApiUrl = this.configService.get<string>('SHIPSGO_API_URL', 'https://api.shipsgo.com/v1');
-    this.shipsGoApiKey = this.configService.get<string>('SHIPSGO_API_KEY', '');
+    this.shipsGoApiKey = this.configService.get<string>('SHIPSGO_API_KEY', '6eada10b-588f-4c36-9086-38009015b545');
     this.fallbackToMock = this.configService.get<boolean>('SHIPSGO_FALLBACK_TO_MOCK', false);
 
     // Debug logging
@@ -112,44 +121,79 @@ export class ShipsGoTrackingService {
     this.logger.log(`  - API URL: ${this.shipsGoApiUrl}`);
     this.logger.log(`  - API Key: ${this.shipsGoApiKey ? 'SET (' + this.shipsGoApiKey.substring(0, 8) + '...)' : 'NOT SET'}`);
     this.logger.log(`  - Fallback to Mock: ${this.fallbackToMock}`);
+    this.logger.log(`  - Real API Key: ${this.shipsGoApiKey === '6eada10b-588f-4c36-9086-38009015b545' ? '✅ Using real credentials' : '❌ Using fallback'}`);
   }
 
   /**
-   * Track container by container number using ShipsGo Container API v1.1
+   * Track container by container number using ShipsGo Container API v2 with map support
    */
   async trackByContainerNumber(containerNumber: string): Promise<ShipsGoTrackingResponse> {
     try {
-      // Force use real API for testing
-      const apiKey = this.shipsGoApiKey || 'b0fa5419120c2c74847084a67d1b03be';
-      const apiUrl = this.shipsGoApiUrl || 'https://shipsgo.com/api/v1.1';
+      // Use real API credentials
+      const apiKey = this.shipsGoApiKey;
+      const apiUrl = this.shipsGoApiUrl;
 
       this.logger.log(`🔍 Debug - API Key: ${apiKey ? 'SET (' + apiKey.substring(0, 8) + '...)' : 'NOT SET'}`);
       this.logger.log(`🔍 Debug - API URL: ${apiUrl}`);
       this.logger.log(`🔍 Debug - Fallback to Mock: ${this.fallbackToMock}`);
 
-      if (!apiKey) {
-        this.logger.warn('ShipsGo API key not configured, returning mock data');
-        return this.getMockTrackingData(containerNumber);
-      }
-
-      // Always use real API for now
-      this.logger.log(`🚀 Attempting to track container ${containerNumber} with real ShipsGo Container API v1.1`);
-
-      // Step 1: Create tracking request (POST)
-      const requestId = await this.createTrackingRequestDirect(containerNumber, apiKey, apiUrl);
-
-      // Step 2: Get tracking data (GET)
-      const trackingData = await this.getTrackingDataDirect(requestId, apiKey, apiUrl);
-
-      return trackingData;
+      // Use v2 API for more accurate data
+      this.logger.log(`🚀 Using ShipsGo API v2 for container ${containerNumber}`);
+      return this.trackByContainerNumberV2(containerNumber);
 
     } catch (error) {
       this.logger.error(`Error tracking container ${containerNumber}:`, error.message);
+      
+      // Throw proper error instead of returning mock data
+      if (error.response?.status === 404) {
+        throw new ShipsGoNotFoundException(`Container ${containerNumber} not found`);
+      } else if (error.response?.status === 401) {
+        throw new ShipsGoAuthException();
+      } else if (error.response?.status === 429) {
+        throw new ShipsGoRateLimitException();
+      } else {
+        throw new ShipsGoApiException(`ShipsGo API error: ${error.message}`, error);
+      }
+    }
+  }
 
-      // Return mock data as fallback
-      const mockData = this.getMockTrackingData(containerNumber);
-      mockData.message = `Fallback data - ShipsGo API error: ${error.message}`;
-      return mockData;
+  /**
+   * Track container using ShipsGo v2 API with map support
+   */
+  async trackByContainerNumberV2(containerNumber: string): Promise<ShipsGoTrackingResponse> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(`${this.shipsGoApiUrl}/track`, {
+          params: {
+            container_number: containerNumber,
+            include_map: 'true',
+            include_route: 'true',
+            include_milestones: 'true',
+          },
+          headers: {
+            'X-Shipsgo-User-Token': this.shipsGoApiKey,
+            'Content-Type': 'application/json',
+          },
+          timeout: 15000,
+        })
+      );
+
+      this.logger.log(`✅ Successfully retrieved v2 tracking data for container ${containerNumber}`);
+      return this.transformShipsGoV2Response(response.data);
+
+    } catch (error) {
+      this.logger.error(`❌ Failed to track container ${containerNumber} with v2 API:`, error.message);
+      
+      // Throw proper error instead of returning mock data
+      if (error.response?.status === 404) {
+        throw new ShipsGoNotFoundException(`Container ${containerNumber} not found in ShipsGo database`);
+      } else if (error.response?.status === 401) {
+        throw new ShipsGoAuthException();
+      } else if (error.response?.status === 429) {
+        throw new ShipsGoRateLimitException();
+      } else {
+        throw new ShipsGoApiException(`ShipsGo V2 API error: ${error.message}`, error);
+      }
     }
   }
 
@@ -307,8 +351,7 @@ export class ShipsGoTrackingService {
   async trackByBLNumber(blNumber: string): Promise<ShipsGoTrackingResponse> {
     try {
       if (!this.shipsGoApiKey) {
-        this.logger.warn('ShipsGo API key not configured, returning mock data');
-        return this.getMockTrackingData(blNumber, 'bl');
+        throw new ShipsGoAuthException();
       }
 
       const response = await firstValueFrom(
@@ -317,9 +360,9 @@ export class ShipsGoTrackingService {
             bl_number: blNumber,
           },
           headers: {
-            'Authorization': `Bearer ${this.shipsGoApiKey}`,
-            'Content-Type': 'application/json',
-          },
+          'X-Shipsgo-User-Token': this.shipsGoApiKey,
+          'Content-Type': 'application/json',
+        },
         }),
       );
 
@@ -333,9 +376,9 @@ export class ShipsGoTrackingService {
         throw new ShipsGoRateLimitException();
       }
       if (error.response?.status === 404) {
-        throw new ShipsGoNotFoundException(blNumber);
+        throw new ShipsGoNotFoundException(`Bill of Lading ${blNumber} not found`);
       }
-      throw new ShipsGoApiException(error.message, error);
+      throw new ShipsGoApiException(`ShipsGo API error: ${error.message}`, error);
     }
   }
 
@@ -345,8 +388,7 @@ export class ShipsGoTrackingService {
   async trackByBookingNumber(bookingNumber: string): Promise<ShipsGoTrackingResponse> {
     try {
       if (!this.shipsGoApiKey) {
-        this.logger.warn('ShipsGo API key not configured, returning mock data');
-        return this.getMockTrackingData(bookingNumber, 'booking');
+        throw new ShipsGoAuthException();
       }
 
       const response = await firstValueFrom(
@@ -355,9 +397,9 @@ export class ShipsGoTrackingService {
             booking_number: bookingNumber,
           },
           headers: {
-            'Authorization': `Bearer ${this.shipsGoApiKey}`,
-            'Content-Type': 'application/json',
-          },
+          'X-Shipsgo-User-Token': this.shipsGoApiKey,
+          'Accept': 'application/json',
+        },
         }),
       );
 
@@ -371,9 +413,9 @@ export class ShipsGoTrackingService {
         throw new ShipsGoRateLimitException();
       }
       if (error.response?.status === 404) {
-        throw new ShipsGoNotFoundException(bookingNumber);
+        throw new ShipsGoNotFoundException(`Booking number ${bookingNumber} not found`);
       }
-      throw new ShipsGoApiException(error.message, error);
+      throw new ShipsGoApiException(`ShipsGo API error: ${error.message}`, error);
     }
   }
 
@@ -404,6 +446,52 @@ export class ShipsGoTrackingService {
       this.logger.error(`Failed to get vessel position for MMSI ${mmsi}`, error);
       return null;
     }
+  }
+
+  /**
+   * Transform ShipsGo v2 API response to our internal format
+   */
+  private transformShipsGoV2Response(data: ShipsGoV2TrackingResponse): ShipsGoTrackingResponse {
+    return {
+      success: data.success,
+      message: data.message || 'Tracking data retrieved successfully',
+      data: {
+        container_number: data.data.containerNumber,
+        bl_number: data.data.blNumber,
+        booking_number: data.data.bookingNumber,
+        shipping_line: data.data.shippingLine,
+        vessel_name: data.data.vesselName,
+        vessel_imo: data.data.vesselImo,
+        voyage: data.data.voyage,
+        port_of_loading: data.data.portOfLoading,
+        port_of_discharge: data.data.portOfDischarge,
+        estimated_departure: data.data.estimatedDeparture,
+        estimated_arrival: data.data.estimatedArrival,
+        actual_departure: data.data.actualDeparture,
+        actual_arrival: data.data.actualArrival,
+        status: data.data.status,
+        status_id: data.data.statusId,
+        milestones: data.data.milestones.map(m => ({
+          event: m.event,
+          location: m.location,
+          date: m.date,
+          status: m.status,
+          description: m.description,
+        })),
+        location: {
+          latitude: data.data.currentPosition.latitude,
+          longitude: data.data.currentPosition.longitude,
+          timestamp: data.data.currentPosition.timestamp,
+        },
+        container_type: data.data.containerType,
+        container_teu: data.data.teu?.toString(),
+        transit_time: data.data.transitTime,
+        co2_emissions: data.data.co2Emissions,
+        live_map_url: data.data.mapUrl,
+        bl_container_count: 1,
+      },
+      timestamp: new Date().toISOString(),
+    };
   }
 
   /**
@@ -493,6 +581,69 @@ export class ShipsGoTrackingService {
       fallbackEnabled: this.fallbackToMock,
       status: hasApiKey ? 'Real API with fallback' : 'Mock mode only'
     };
+  }
+
+  /**
+   * Get map data for a container using ShipsGo v2 API
+   */
+  async getContainerMap(containerNumber: string): Promise<ShipsGoV2MapResponse | null> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(`${this.shipsGoApiUrl}/track`, {
+          params: {
+            container_number: containerNumber,
+            include_map: 'true',
+          },
+          headers: {
+            'X-Shipsgo-User-Token': this.shipsGoApiKey,
+            'Content-Type': 'application/json',
+          },
+          timeout: 15000,
+        })
+      );
+
+      if (response.data?.data?.mapUrl) {
+        return {
+          mapUrl: response.data.data.mapUrl,
+          embedUrl: response.data.data.mapUrl.replace('/map/', '/embed/'),
+          staticImageUrl: response.data.data.mapUrl.replace('/map/', '/static/'),
+          interactive: true,
+          bounds: {
+            north: response.data.data.currentPosition?.latitude + 5 || 90,
+            south: response.data.data.currentPosition?.latitude - 5 || -90,
+            east: response.data.data.currentPosition?.longitude + 5 || 180,
+            west: response.data.data.currentPosition?.longitude - 5 || -180,
+          },
+        };
+      }
+
+      return null;
+    } catch (error) {
+      this.logger.error(`Failed to get map data for container ${containerNumber}:`, error.message);
+      return null;
+    }
+  }
+
+  /**
+   * Get vessel information using ShipsGo v2 API
+   */
+  async getVesselInfo(mmsi: string): Promise<ShipsGoV2VesselInfo | null> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(`${this.shipsGoApiUrl}/vessel/${mmsi}`, {
+          headers: {
+            'X-Shipsgo-User-Token': this.shipsGoApiKey,
+            'Content-Type': 'application/json',
+          },
+          timeout: 15000,
+        })
+      );
+
+      return response.data;
+    } catch (error) {
+      this.logger.error(`Failed to get vessel info for MMSI ${mmsi}:`, error.message);
+      return null;
+    }
   }
 
   /**

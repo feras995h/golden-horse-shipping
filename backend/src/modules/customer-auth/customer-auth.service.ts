@@ -155,6 +155,31 @@ export class CustomerAuthService {
     };
   }
 
+  /**
+   * Generate unique customer number in format GH-XXXXXX
+   */
+  private async generateCustomerNumber(): Promise<string> {
+    let customerNumber: string;
+    let isUnique = false;
+    
+    while (!isUnique) {
+      // Generate 6-digit random number
+      const randomNum = Math.floor(Math.random() * 999999).toString().padStart(6, '0');
+      customerNumber = `GH-${randomNum}`;
+      
+      // Check if this customer number already exists
+      const existing = await this.customerAccountRepository.findOne({
+        where: { customerNumber },
+      });
+      
+      if (!existing) {
+        isUnique = true;
+      }
+    }
+    
+    return customerNumber;
+  }
+
   async createCustomerAccount(createDto: CreateCustomerAccountDto) {
     // Check if tracking number already exists
     const existingAccount = await this.customerAccountRepository.findOne({
@@ -165,12 +190,16 @@ export class CustomerAuthService {
       throw new ConflictException('Customer account with this tracking number already exists');
     }
 
+    // Generate unique customer number
+    const customerNumber = await this.generateCustomerNumber();
+
     // Hash password
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(createDto.password, saltRounds);
 
     const customerAccount = this.customerAccountRepository.create({
       trackingNumber: createDto.trackingNumber,
+      customerNumber,
       passwordHash,
       customerName: createDto.customerName,
       customerEmail: createDto.customerEmail,

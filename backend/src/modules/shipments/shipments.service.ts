@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { Shipment, ShipmentStatus, PaymentStatus } from '../../entities/shipment.entity';
 import { Client } from '../../entities/client.entity';
+import { CustomerAccount } from '../../entities/customer-account.entity';
 import { PaymentRecord, PaymentMethod } from '../../entities/payment-record.entity';
 import { CreateShipmentDto } from './dto/create-shipment.dto';
 import { UpdateShipmentDto } from './dto/update-shipment.dto';
@@ -20,6 +21,8 @@ export class ShipmentsService {
     private shipmentRepository: Repository<Shipment>,
     @InjectRepository(Client)
     private clientRepository: Repository<Client>,
+    @InjectRepository(CustomerAccount)
+    private customerAccountRepository: Repository<CustomerAccount>,
     @InjectRepository(PaymentRecord)
     private paymentRecordRepository: Repository<PaymentRecord>,
     private shipsGoTrackingService: ShipsGoTrackingService,
@@ -43,6 +46,17 @@ export class ShipmentsService {
 
     if (!client) {
       throw new NotFoundException('Client not found');
+    }
+
+    // Verify customer account exists if provided
+    if (createShipmentDto.customerAccountId) {
+      const customerAccount = await this.customerAccountRepository.findOne({
+        where: { id: createShipmentDto.customerAccountId },
+      });
+
+      if (!customerAccount) {
+        throw new NotFoundException('Customer account not found');
+      }
     }
 
     // Generate unique tracking number

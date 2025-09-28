@@ -254,11 +254,19 @@ const ClientsPage = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <Package className="h-4 w-4 text-gray-400 ml-1" />
-                            <span className="text-sm text-gray-900">
-                              {client.shipmentsCount || 0}
-                            </span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <Package className="h-4 w-4 text-gray-400 ml-1" />
+                              <span className="text-sm text-gray-900">
+                                {client.shipmentsCount || 0}
+                              </span>
+                            </div>
+                            <Link
+                              href={`/admin/clients/${client.id}/shipments`}
+                              className="text-xs text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded-md transition-colors"
+                            >
+                              عرض الشحنات
+                            </Link>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

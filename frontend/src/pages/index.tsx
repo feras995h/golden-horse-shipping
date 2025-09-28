@@ -21,7 +21,9 @@ import {
   Users,
   CheckCircle,
   Star,
-  ArrowRight
+  ArrowRight,
+  Sparkles,
+  Award
 } from 'lucide-react';
 
 const HomePage = () => {
@@ -128,29 +130,46 @@ const HomePage = () => {
       </Head>
 
       {/* Hero Section */}
-      <section className="relative hero-gradient text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
-          <div className="text-center">
+      <section className="relative hero-gradient text-white overflow-hidden min-h-screen flex items-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-gold-900/20"></div>
+        
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-luxury-300/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        </div>
 
-            <h1 className="heading-hero mb-6 animate-fade-in">
-              {t('hero.title')}
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 z-10">
+          <div className="text-center">
+            <div className="mb-8 animate-fade-in">
+              <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-gold-300/30 text-gold-200 text-sm font-medium mb-6">
+                <Star className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0 text-gold-400" />
+                الشريك الموثوق في عالم الشحن والخدمات اللوجستية
+              </div>
+            </div>
+
+            <h1 className="text-5xl md:text-7xl font-black mb-8 animate-fade-in">
+              <span className="text-gradient block mb-2">{t('hero.title')}</span>
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-primary-300 animate-slide-up">
+            
+            <p className="text-xl md:text-2xl mb-8 text-gold-200 font-light max-w-4xl mx-auto animate-slide-up leading-relaxed">
               {t('hero.subtitle')}
             </p>
-            <p className="text-lg mb-12 text-gray-100 max-w-3xl mx-auto animate-slide-up">
+            
+            <p className="text-lg mb-12 text-white/80 max-w-3xl mx-auto animate-slide-up leading-relaxed">
               {t('hero.description')}
             </p>
 
-            {/* Call to Action Buttons */}
-            <div className="flex flex-wrap justify-center gap-4 animate-slide-up">
-              <Link href="/services" className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center">
-                <span>{t('hero.servicesButton')}</span>
-                <ArrowRight className="h-5 w-5 rtl:mr-2 ltr:ml-2 rtl:rotate-180" />
+            {/* Enhanced Call to Action Buttons */}
+            <div className="flex flex-col sm:flex-row justify-center gap-6 animate-slide-up mb-16">
+              <Link href="/services" className="group relative overflow-hidden bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white px-10 py-5 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl flex items-center justify-center">
+                <span className="relative z-10">{t('hero.servicesButton')}</span>
+                <ArrowRight className="h-6 w-6 rtl:mr-3 ltr:ml-3 rtl:rotate-180 relative z-10 group-hover:translate-x-1 transition-transform" />
+                <div className="absolute inset-0 bg-gradient-to-r from-gold-600 to-gold-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </Link>
-              <Link href="/contact" className="bg-secondary-800 hover:bg-secondary-900 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-200">
-                {t('hero.contactButton')}
+              
+              <Link href="/contact" className="group relative overflow-hidden bg-white/10 backdrop-blur-md border-2 border-white/30 hover:bg-white hover:text-gold-700 text-white px-10 py-5 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                <span className="relative z-10">{t('hero.contactButton')}</span>
               </Link>
             </div>
 
@@ -224,52 +243,79 @@ const HomePage = () => {
         </div>
 
         {/* Floating Elements */}
-        <div className="absolute top-20 left-10 animate-float">
-          <Ship className="h-12 w-12 text-white opacity-20" />
+        <div className="absolute top-20 left-10 animate-float opacity-30">
+          <div className="relative">
+            <Ship className="h-16 w-16 text-gold-300" />
+            <div className="absolute -top-2 -right-2 w-4 h-4 bg-gold-400 rounded-full animate-ping"></div>
+          </div>
         </div>
-        <div className="absolute bottom-20 right-10 animate-float" style={{ animationDelay: '2s' }}>
-          <Plane className="h-10 w-10 text-white opacity-20" />
+        <div className="absolute bottom-20 right-10 animate-float opacity-30" style={{ animationDelay: '2s' }}>
+          <div className="relative">
+            <Plane className="h-14 w-14 text-luxury-200" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-luxury-400 rounded-full animate-ping"></div>
+          </div>
+        </div>
+        <div className="absolute top-1/2 left-20 animate-float opacity-20" style={{ animationDelay: '4s' }}>
+          <Package className="h-12 w-12 text-gold-400" />
         </div>
       </section>
 
-      {/* Stats Section */}
-      <Section bg="white">
-        <Container>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-gold-600 mb-2">{stat.number}</div>
-                <div className="text-gray-600 font-medium">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </Container>
-      </Section>
-
-      {/* Services Section */}
-      <section className="section bg-gray-50">
+      {/* Enhanced Stats Section */}
+      <section className="relative -mt-20 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="section-title mb-4">
-              {t('services.title')}
+          <div className="glass-panel p-8 md:p-12">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              {stats.map((stat, index) => (
+                <div key={index} className="text-center group">
+                  <div className="relative mb-4">
+                    <div className="text-4xl md:text-5xl font-black text-gradient mb-2 group-hover:scale-110 transition-transform duration-300">
+                      {stat.number}
+                    </div>
+                    <div className="absolute inset-0 bg-gold-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </div>
+                  <div className="text-elegant-700 font-bold text-lg">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced Services Section */}
+      <section className="py-24 bg-gradient-to-br from-elegant-50 via-white to-luxury-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gold-100 text-gold-700 text-sm font-semibold mb-6">
+              <Sparkles className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
+              خدماتنا المتميزة
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black text-elegant-900 mb-6">
+              <span className="text-gradient">{t('services.title')}</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-elegant-600 max-w-4xl mx-auto leading-relaxed">
               {t('services.subtitle')}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {services.map((service, index) => (
-              <div key={index} className="card group hover-lift">
-                <div className={`w-16 h-16 bg-gradient-to-r ${service.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                  <service.icon className="h-8 w-8 text-white" />
+              <div key={index} className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-gold-500/10 to-luxury-500/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="relative glass-panel p-8 h-full group-hover:scale-105 transition-all duration-500">
+                  <div className="relative mb-8">
+                    <div className={`w-20 h-20 bg-gradient-to-r ${service.color} rounded-3xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-2xl`}>
+                      <service.icon className="h-10 w-10 text-white" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-gold-400 rounded-full opacity-0 group-hover:opacity-100 animate-ping transition-opacity duration-300"></div>
+                  </div>
+                  <h3 className="text-2xl font-black text-elegant-900 mb-6 group-hover:text-gold-700 transition-colors duration-300">
+                    {service.title}
+                  </h3>
+                  <p className="text-elegant-600 leading-relaxed text-lg">
+                    {service.description}
+                  </p>
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-gold-500 to-luxury-500 rounded-b-3xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">
-                  {service.title}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {service.description}
-                </p>
               </div>
             ))}
           </div>
@@ -277,61 +323,81 @@ const HomePage = () => {
       </section>
 
 
-      {/* Features Section */}
-      <section className="section bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="section-title mb-4">
-              {t('features.title')}
+      {/* Enhanced Features Section */}
+      <section className="py-24 bg-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-gold-50/30 via-transparent to-luxury-50/30"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-luxury-100 text-luxury-700 text-sm font-semibold mb-6">
+              <Award className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
+              مميزاتنا التنافسية
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black text-elegant-900 mb-6">
+              <span className="text-gradient">{t('features.title')}</span>
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="text-center group">
-                <div className="w-20 h-20 bg-gradient-to-r from-gold-500 to-gold-600 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <feature.icon className="h-10 w-10 text-white" />
+              <div key={index} className="text-center group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-gold-500/5 to-luxury-500/5 rounded-3xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="relative p-6">
+                  <div className="relative mb-8 mx-auto w-fit">
+                    <div className="w-24 h-24 bg-gradient-to-br from-gold-500 to-gold-600 rounded-full flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 shadow-2xl">
+                      <feature.icon className="h-12 w-12 text-white" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-luxury-400 rounded-full opacity-0 group-hover:opacity-100 animate-pulse transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 bg-gold-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  </div>
+                  <h3 className="text-xl font-black text-elegant-900 mb-4 group-hover:text-gold-700 transition-colors duration-300">
+                    {feature.title}
+                  </h3>
+                  <p className="text-elegant-600 leading-relaxed">
+                    {feature.description}
+                  </p>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600">
-                  {feature.description}
-                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="section bg-gray-50">
+      {/* Enhanced Testimonials Section */}
+      <section className="py-24 bg-gradient-to-br from-elegant-50 via-luxury-50 to-gold-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              آراء عملائنا
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gold-100 text-gold-700 text-sm font-semibold mb-6">
+              <Star className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
+              آراء عملائنا الكرام
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black text-elegant-900 mb-6">
+              <span className="text-gradient">ماذا يقول عملاؤنا</span>
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[1, 2, 3].map((item) => (
-              <div key={item} className="card hover-lift">
-                <div className="flex items-center mb-4">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="h-5 w-5 text-gold-400 fill-current" />
-                  ))}
-                </div>
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  &quot;خدمة ممتازة وسريعة، وصلت بضاعتي في الوقت المحدد وبحالة ممتازة. أنصح بشدة بالتعامل مع الحصان الذهبي.&quot;
-                </p>
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-gradient-to-r from-gold-500 to-gold-600 rounded-full flex items-center justify-center text-white font-bold">
-                    أ
+              <div key={item} className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-gold-500/10 to-luxury-500/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="relative glass-panel p-8 h-full group-hover:scale-105 transition-all duration-500">
+                  <div className="flex items-center mb-6">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star key={star} className="h-6 w-6 text-gold-400 fill-current" />
+                    ))}
                   </div>
-                  <div className="mr-4 rtl:ml-4 rtl:mr-0">
-                    <div className="font-semibold text-gray-900">أحمد محمد</div>
-                    <div className="text-sm text-gray-500">تاجر</div>
+                  <p className="text-elegant-700 mb-8 leading-relaxed text-lg font-medium">
+                    &quot;خدمة ممتازة وسريعة، وصلت بضاعتي في الوقت المحدد وبحالة ممتازة. أنصح بشدة بالتعامل مع الحصان الذهبي.&quot;
+                  </p>
+                  <div className="flex items-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-gold-500 to-gold-600 rounded-full flex items-center justify-center text-white font-black text-xl shadow-xl">
+                      أ
+                    </div>
+                    <div className="mr-4 rtl:ml-4 rtl:mr-0">
+                      <div className="font-black text-elegant-900 text-lg">أحمد محمد</div>
+                      <div className="text-elegant-600 font-semibold">تاجر</div>
+                    </div>
                   </div>
+                  <div className="absolute top-6 right-6 text-gold-300/30 text-6xl font-black">&quot;</div>
                 </div>
               </div>
             ))}
@@ -339,17 +405,45 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <Section bg="gradientGold">
-        <Container className="text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">ابدأ رحلة الشحن معنا اليوم</h2>
-          <p className="text-xl mb-8 text-gold-100 max-w-3xl mx-auto">احصل على عرض سعر مجاني واكتشف كيف يمكننا مساعدتك في شحن بضائعك بأمان وسرعة</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/contact" className="bg-white text-gold-600 hover:bg-gray-100 font-semibold py-4 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">احصل على عرض سعر</Link>
-            <Link href="/tracking" className="border-2 border-white text-white hover:bg-white hover:text-gold-600 font-semibold py-4 px-8 rounded-lg transition-all duration-200">تتبع شحنتك</Link>
+      {/* Enhanced CTA Section */}
+      <section className="relative py-24 overflow-hidden">
+        <div className="absolute inset-0 hero-gradient"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-transparent to-gold-900/30"></div>
+        
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/3 left-1/3 w-72 h-72 bg-gold-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/3 right-1/3 w-64 h-64 bg-luxury-300/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '3s' }}></div>
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
+          <div className="mb-8">
+            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-gold-300/30 text-gold-200 text-sm font-semibold mb-8">
+              <Package className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0 text-gold-400" />
+              ابدأ رحلتك معنا الآن
+            </div>
           </div>
-        </Container>
-      </Section>
+          
+          <h2 className="text-4xl md:text-6xl font-black text-white mb-8">
+            <span className="text-gradient">ابدأ رحلة الشحن معنا اليوم</span>
+          </h2>
+          
+          <p className="text-xl md:text-2xl mb-12 text-gold-200 max-w-4xl mx-auto leading-relaxed font-light">
+            احصل على عرض سعر مجاني واكتشف كيف يمكننا مساعدتك في شحن بضائعك بأمان وسرعة
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <Link href="/contact" className="group relative overflow-hidden bg-white text-gold-700 hover:bg-gold-50 font-black py-5 px-10 rounded-2xl text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
+              <span className="relative z-10">احصل على عرض سعر</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-gold-50 to-luxury-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </Link>
+            
+            <Link href="/tracking" className="group relative overflow-hidden border-2 border-white/50 text-white hover:bg-white hover:text-gold-700 font-black py-5 px-10 rounded-2xl text-lg transition-all duration-300 transform hover:scale-105 backdrop-blur-md">
+              <span className="relative z-10">تتبع شحنتك</span>
+            </Link>
+          </div>
+        </div>
+      </section>
     </Layout>
   );
 };

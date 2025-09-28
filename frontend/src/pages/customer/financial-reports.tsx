@@ -140,7 +140,10 @@ const CustomerFinancialReports = () => {
     return (
       <CustomerLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-600"></div>
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-gradient-to-r from-indigo-600 to-purple-600 border-t-transparent rounded-full animate-spin"></div>
+            <div className="absolute inset-0 w-16 h-16 border-4 border-gradient-to-r from-purple-600 to-indigo-600 border-t-transparent rounded-full animate-spin animate-pulse"></div>
+          </div>
         </div>
       </CustomerLayout>
     );
@@ -149,14 +152,24 @@ const CustomerFinancialReports = () => {
   if (error) {
     return (
       <CustomerLayout>
-        <div className="text-center py-12">
-          <p className="text-red-600">{error}</p>
-          <button
-            onClick={fetchReportData}
-            className="mt-4 bg-gold-600 text-white px-4 py-2 rounded-lg hover:bg-gold-700"
-          >
-            إعادة المحاولة
-          </button>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="relative p-8 bg-gradient-to-br from-white/95 to-gray-50/95 backdrop-blur-lg rounded-2xl shadow-2xl shadow-gray-900/20 border border-gray-200/50 text-center max-w-md">
+            <div className="absolute inset-0 bg-gradient-to-br from-red-600/5 to-red-800/5 rounded-2xl"></div>
+            <div className="relative">
+              <div className="p-3 bg-gradient-to-br from-red-100 to-red-200 rounded-full w-fit mx-auto mb-4">
+                <FileText className="h-8 w-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-bold bg-gradient-to-r from-red-700 to-red-900 bg-clip-text text-transparent mb-2">خطأ في التحميل</h3>
+              <p className="text-red-600 font-medium mb-6">{error}</p>
+              <button
+                onClick={fetchReportData}
+                className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold rounded-xl shadow-lg hover:from-red-700 hover:to-red-800 hover:shadow-xl transition-all duration-200 transform hover:scale-105 flex items-center mx-auto"
+              >
+                <RefreshCw className="h-5 w-5 mr-2" />
+                إعادة المحاولة
+              </button>
+            </div>
+          </div>
         </div>
       </CustomerLayout>
     );
@@ -165,8 +178,17 @@ const CustomerFinancialReports = () => {
   if (!reportData) {
     return (
       <CustomerLayout>
-        <div className="text-center py-12">
-          <p className="text-gray-600">لا توجد بيانات تقرير متاحة</p>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="relative p-8 bg-gradient-to-br from-white/95 to-gray-50/95 backdrop-blur-lg rounded-2xl shadow-2xl shadow-gray-900/20 border border-gray-200/50 text-center max-w-md">
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-600/5 to-gray-800/5 rounded-2xl"></div>
+            <div className="relative">
+              <div className="p-3 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full w-fit mx-auto mb-4">
+                <BarChart3 className="h-8 w-8 text-gray-600" />
+              </div>
+              <h3 className="text-xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent mb-2">لا توجد بيانات</h3>
+              <p className="text-gray-600 font-medium">لا توجد بيانات تقرير متاحة</p>
+            </div>
+          </div>
         </div>
       </CustomerLayout>
     );
@@ -179,113 +201,144 @@ const CustomerFinancialReports = () => {
         <meta name="description" content="التقارير المالية التفصيلية للعميل" />
       </Head>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">التقارير المالية</h1>
-            <p className="text-gray-600">تقارير مالية تفصيلية ورسوم بيانية</p>
-          </div>
-          <div className="flex items-center space-x-4 space-x-reverse">
-            <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="input-field"
-            >
-              <option value="3months">آخر 3 أشهر</option>
-              <option value="6months">آخر 6 أشهر</option>
-              <option value="1year">آخر سنة</option>
-              <option value="all">جميع الفترات</option>
-            </select>
-            <button
-              onClick={fetchReportData}
-              className="flex items-center text-gold-600 hover:text-gold-700"
-            >
-              <RefreshCw className="h-5 w-5 mr-2" />
-              تحديث
-            </button>
+        <div className="relative p-8 bg-gradient-to-br from-white/95 to-gray-50/95 backdrop-blur-lg rounded-2xl shadow-2xl shadow-gray-900/20 border border-gray-200/50">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/5 to-purple-600/5 rounded-2xl"></div>
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="p-3 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-full mr-4">
+                <BarChart3 className="h-8 w-8 text-indigo-600" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-700 to-indigo-900 bg-clip-text text-transparent">التقارير المالية</h1>
+                <p className="text-gray-600 font-medium mt-1">تقارير مالية تفصيلية ورسوم بيانية</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4 space-x-reverse">
+              <div className="relative">
+                <select
+                  value={selectedPeriod}
+                  onChange={(e) => setSelectedPeriod(e.target.value)}
+                  className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 font-medium appearance-none pr-10"
+                >
+                  <option value="3months">آخر 3 أشهر</option>
+                  <option value="6months">آخر 6 أشهر</option>
+                  <option value="1year">آخر سنة</option>
+                  <option value="all">جميع الفترات</option>
+                </select>
+                <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+              </div>
+              <button
+                onClick={fetchReportData}
+                className="flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:from-indigo-700 hover:to-indigo-800 hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+              >
+                <RefreshCw className="h-5 w-5 mr-2" />
+                تحديث
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Financial Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <DollarSign className="h-6 w-6 text-green-600" />
+          <div className="relative p-6 bg-gradient-to-br from-white/95 to-gray-50/95 backdrop-blur-lg rounded-2xl shadow-2xl shadow-gray-900/20 border border-gray-200/50 hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-600/5 to-green-800/5 rounded-2xl"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <div className="p-3 bg-gradient-to-br from-green-100 to-green-200 rounded-xl mr-4">
+                    <DollarSign className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-600">إجمالي القيمة</p>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-green-700 to-green-900 bg-clip-text text-transparent">
+                      {formatCurrency(reportData.financialStats.totalValue)}
+                    </p>
+                  </div>
                 </div>
-                <div className="mr-4">
-                  <p className="text-sm font-medium text-gray-600">إجمالي القيمة</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {formatCurrency(reportData.financialStats.totalValue)}
-                  </p>
+                <div className="p-2 bg-gradient-to-br from-green-100 to-green-200 rounded-full">
+                  <TrendingUp className="h-5 w-5 text-green-600" />
                 </div>
               </div>
-              <TrendingUp className="h-5 w-5 text-green-500" />
-            </div>
-            <div className="text-sm text-gray-500">
-              قيمة جميع الشحنات
+              <div className="text-sm text-gray-500 font-medium">
+                قيمة جميع الشحنات
+              </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <CreditCard className="h-6 w-6 text-blue-600" />
+          <div className="relative p-6 bg-gradient-to-br from-white/95 to-gray-50/95 backdrop-blur-lg rounded-2xl shadow-2xl shadow-gray-900/20 border border-gray-200/50 hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-blue-800/5 rounded-2xl"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl mr-4">
+                    <CreditCard className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-600">المدفوع</p>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-blue-700 to-blue-900 bg-clip-text text-transparent">
+                      {formatCurrency(reportData.financialStats.totalPaid)}
+                    </p>
+                  </div>
                 </div>
-                <div className="mr-4">
-                  <p className="text-sm font-medium text-gray-600">المدفوع</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {formatCurrency(reportData.financialStats.totalPaid)}
-                  </p>
+                <div className="p-2 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
                 </div>
               </div>
-              <TrendingUp className="h-5 w-5 text-blue-500" />
-            </div>
-            <div className="text-sm text-gray-500">
-              المبلغ المدفوع فعلياً
+              <div className="text-sm text-gray-500 font-medium">
+                المبلغ المدفوع فعلياً
+              </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <div className="p-3 bg-red-100 rounded-lg">
-                  <TrendingDown className="h-6 w-6 text-red-600" />
+          <div className="relative p-6 bg-gradient-to-br from-white/95 to-gray-50/95 backdrop-blur-lg rounded-2xl shadow-2xl shadow-gray-900/20 border border-gray-200/50 hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
+            <div className="absolute inset-0 bg-gradient-to-br from-red-600/5 to-red-800/5 rounded-2xl"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <div className="p-3 bg-gradient-to-br from-red-100 to-red-200 rounded-xl mr-4">
+                    <TrendingDown className="h-6 w-6 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-600">المتبقي</p>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-red-700 to-red-900 bg-clip-text text-transparent">
+                      {formatCurrency(reportData.financialStats.totalPending)}
+                    </p>
+                  </div>
                 </div>
-                <div className="mr-4">
-                  <p className="text-sm font-medium text-gray-600">المتبقي</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {formatCurrency(reportData.financialStats.totalPending)}
-                  </p>
+                <div className="p-2 bg-gradient-to-br from-red-100 to-red-200 rounded-full">
+                  <TrendingDown className="h-5 w-5 text-red-600" />
                 </div>
               </div>
-              <TrendingDown className="h-5 w-5 text-red-500" />
-            </div>
-            <div className="text-sm text-gray-500">
-              المبلغ المتبقي للدفع
+              <div className="text-sm text-gray-500 font-medium">
+                المبلغ المتبقي للدفع
+              </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <FileText className="h-6 w-6 text-purple-600" />
+          <div className="relative p-6 bg-gradient-to-br from-white/95 to-gray-50/95 backdrop-blur-lg rounded-2xl shadow-2xl shadow-gray-900/20 border border-gray-200/50 hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-600/5 to-purple-800/5 rounded-2xl"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <div className="p-3 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl mr-4">
+                    <FileText className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-600">إجمالي المدفوعات</p>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-purple-700 to-purple-900 bg-clip-text text-transparent">
+                      {reportData.financialStats.totalPayments}
+                    </p>
+                  </div>
                 </div>
-                <div className="mr-4">
-                  <p className="text-sm font-medium text-gray-600">إجمالي المدفوعات</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {reportData.financialStats.totalPayments}
-                  </p>
+                <div className="p-2 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full">
+                  <BarChart3 className="h-5 w-5 text-purple-600" />
                 </div>
               </div>
-              <BarChart3 className="h-5 w-5 text-purple-500" />
-            </div>
-            <div className="text-sm text-gray-500">
-              عدد المعاملات المالية
+              <div className="text-sm text-gray-500 font-medium">
+                عدد المعاملات المالية
+              </div>
             </div>
           </div>
         </div>

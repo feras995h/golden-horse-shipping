@@ -214,6 +214,9 @@ export const reportsAPI = {
   getUnpaidShipments: () =>
     api.get('/reports/unpaid-shipments'),
   
+  getAdvancedStats: (params?: any) =>
+    api.get('/reports/advanced-stats', { params }),
+  
   exportShipmentsCsv: (params?: any) =>
     api.get('/reports/shipments/export', { 
       params,

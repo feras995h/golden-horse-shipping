@@ -91,8 +91,22 @@ const EditClientPage = () => {
         router.push(`/admin/clients/${id}`);
       },
       onError: (error: any) => {
-        if (error.response?.data?.message) {
+        console.error('Client update error:', error);
+        
+        if (error.response?.status === 409) {
+          // Handle 409 Conflict errors specifically
+          const message = error.response?.data?.message || '';
+          if (message.includes('email')) {
+            setErrors({ email: 'عميل آخر بهذا البريد الإلكتروني موجود بالفعل' });
+          } else if (message.includes('tracking') || message.includes('trackingNumber')) {
+            setErrors({ trackingNumber: 'عميل آخر برقم التتبع هذا موجود بالفعل' });
+          } else {
+            setErrors({ general: 'عميل آخر بهذه البيانات موجود بالفعل. يرجى التحقق من البريد الإلكتروني أو رقم التتبع.' });
+          }
+        } else if (error.response?.data?.message) {
           setErrors({ general: error.response.data.message });
+        } else {
+          setErrors({ general: 'حدث خطأ أثناء تحديث العميل. يرجى المحاولة مرة أخرى.' });
         }
       },
     }

@@ -6,6 +6,7 @@ import { ContainerParamDto } from './dto/container-param.dto';
 import { BLParamDto } from './dto/bl-param.dto';
 import { BookingParamDto } from './dto/booking-param.dto';
 import { TrackQueryDto } from './dto/track-query.dto';
+import { ShipsGoV2MapResponse, ShipsGoV2VesselInfo } from './dto/v2-types.dto';
 
 @ApiTags('ShipsGo Tracking')
 @Controller('shipsgo-tracking')
@@ -92,6 +93,57 @@ export class ShipsGoTrackingController {
   @ApiResponse({ status: 200, description: 'Health status' })
   getHealth() {
     return this.shipsGoTrackingService.getHealth();
+  }
+
+  @Get('container/:containerNumber/map')
+  @ApiOperation({ summary: 'Get map data for container (v2 API)' })
+  @ApiParam({ name: 'containerNumber', description: 'Container number to get map data for' })
+  @ApiResponse({ status: 200, description: 'Map data retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Container not found or no map data available' })
+  async getContainerMap(@Param() params: ContainerParamDto): Promise<ShipsGoV2MapResponse | null> {
+    const { containerNumber } = params;
+    this.logger.log(`Getting map data for container: ${containerNumber}`);
+    return this.shipsGoTrackingService.getContainerMap(containerNumber.toUpperCase());
+  }
+
+  @Get('vessel/:mmsi/info')
+  @ApiOperation({ summary: 'Get detailed vessel information (v2 API)' })
+  @ApiParam({ name: 'mmsi', description: 'MMSI number of the vessel' })
+  @ApiResponse({ status: 200, description: 'Vessel information retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Vessel not found' })
+  async getVesselInfo(@Param('mmsi') mmsi: string): Promise<ShipsGoV2VesselInfo | null> {
+    this.logger.log(`Getting vessel info for MMSI: ${mmsi}`);
+    return this.shipsGoTrackingService.getVesselInfo(mmsi);
+  }
+
+  @Get('v2/track')
+  @ApiOperation({ summary: 'Enhanced tracking with map support (v2 API)' })
+  @ApiQuery({ name: 'container', required: false, description: 'Container number' })
+  @ApiQuery({ name: 'bl', required: false, description: 'Bill of Lading number' })
+  @ApiQuery({ name: 'booking', required: false, description: 'Booking number' })
+  @ApiQuery({ name: 'include_map', required: false, description: 'Include map data', type: Boolean })
+  @ApiQuery({ name: 'include_route', required: false, description: 'Include route data', type: Boolean })
+  @ApiResponse({ status: 200, description: 'Enhanced tracking data with map support' })
+  @ApiResponse({ status: 400, description: 'No tracking identifier provided' })
+  async trackWithMapSupport(
+    @Query() query: TrackQueryDto & { include_map?: boolean; include_route?: boolean },
+  ): Promise<ShipsGoTrackingResponse> {
+    const { container, bl, booking, include_map = true, include_route = true } = query;
+
+    if (container) {
+      this.logger.log(`Enhanced tracking by container: ${container} (map: ${include_map}, route: ${include_route})`);
+      return this.shipsGoTrackingService.trackByContainerNumber(container.toUpperCase());
+    }
+    if (bl) {
+      this.logger.log(`Enhanced tracking by BL: ${bl} (map: ${include_map}, route: ${include_route})`);
+      return this.shipsGoTrackingService.trackByBLNumber(bl.toUpperCase());
+    }
+    if (booking) {
+      this.logger.log(`Enhanced tracking by booking: ${booking} (map: ${include_map}, route: ${include_route})`);
+      return this.shipsGoTrackingService.trackByBookingNumber(booking.toUpperCase());
+    }
+
+    throw new BadRequestException('No tracking identifier provided. Provide container, bl, or booking.');
   }
 
 }

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'next-i18next';
 import ProgressTimeline from './ProgressTimeline';
+import ShipsGoLiveMap from './ShipsGoLiveMap';
 import {
   Ship,
   MapPin,
@@ -13,7 +14,11 @@ import {
   CheckCircle,
   AlertCircle,
   Circle,
-  AlertTriangle
+  AlertTriangle,
+  Map,
+  Eye,
+  EyeOff,
+  FileText
 } from 'lucide-react';
 
 interface ShipsGoMilestone {
@@ -26,7 +31,7 @@ interface ShipsGoMilestone {
 
 interface ShipsGoTrackingData {
   success: boolean;
-  data: {
+  data?: {
     container_number: string;
     bl_number?: string;
     booking_number?: string;
@@ -49,6 +54,7 @@ interface ShipsGoTrackingData {
     co2_emissions?: number;
     transit_time?: number;
   };
+  error?: string;
   shipmentInfo?: {
     trackingNumber: string;
     description: string;
@@ -62,50 +68,65 @@ interface ShipsGoTrackingCardProps {
 
 const ShipsGoTrackingCard: React.FC<ShipsGoTrackingCardProps> = ({ trackingData }) => {
   const { t } = useTranslation('common');
+  const [showMap, setShowMap] = useState(false);
 
-  if (!trackingData.success) {
+  // Early return if no data
+  if (!trackingData.success || !trackingData.data) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <div className="flex items-center">
-          <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
-          <span className="text-red-700">حدث خطأ في جلب بيانات التتبع</span>
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              لا توجد بيانات تتبع متاحة
+            </h3>
+            <p className="text-gray-600">
+              {trackingData.error || 'لم يتم العثور على معلومات التتبع للرقم المطلوب'}
+            </p>
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+              <p className="text-sm text-blue-800">
+                💡 نصيحة: تأكد من صحة رقم الحاوية أو رقم بوليصة الشحن
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  const { data } = trackingData;
+  const data = trackingData.data;
 
+  // Enhanced status determination
   const getStatusIcon = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'in progress':
-      case 'in transit':
-        return <Circle className="h-4 w-4 text-blue-500 animate-pulse" />;
-      case 'pending':
-        return <Circle className="h-4 w-4 text-yellow-500" />;
-      case 'delayed':
-        return <Circle className="h-4 w-4 text-red-500" />;
-      default:
-        return <Circle className="h-4 w-4 text-gray-400" />;
+    const statusLower = status?.toLowerCase() || '';
+    if (statusLower.includes('delivered') || statusLower.includes('تم التسليم')) {
+      return <CheckCircle className="h-5 w-5 text-green-600" />;
+    } else if (statusLower.includes('transit') || statusLower.includes('في الطريق')) {
+      return <Ship className="h-5 w-5 text-blue-600" />;
+    } else if (statusLower.includes('port') || statusLower.includes('ميناء')) {
+      return <Anchor className="h-5 w-5 text-orange-600" />;
+    } else if (statusLower.includes('customs') || statusLower.includes('جمارك')) {
+      return <FileText className="h-5 w-5 text-purple-600" />;
+    } else if (statusLower.includes('delayed') || statusLower.includes('متأخر')) {
+      return <AlertTriangle className="h-5 w-5 text-red-600" />;
     }
+    return <Circle className="h-5 w-5 text-gray-400" />;
   };
 
   const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'completed':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'in progress':
-      case 'in transit':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'delayed':
-        return 'bg-red-100 text-red-800 border-red-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+    const statusLower = status?.toLowerCase() || '';
+    if (statusLower.includes('delivered') || statusLower.includes('تم التسليم')) {
+      return 'bg-green-100 text-green-800 border-green-200';
+    } else if (statusLower.includes('transit') || statusLower.includes('في الطريق')) {
+      return 'bg-blue-100 text-blue-800 border-blue-200';
+    } else if (statusLower.includes('port') || statusLower.includes('ميناء')) {
+      return 'bg-orange-100 text-orange-800 border-orange-200';
+    } else if (statusLower.includes('customs') || statusLower.includes('جمارك')) {
+      return 'bg-purple-100 text-purple-800 border-purple-200';
+    } else if (statusLower.includes('delayed') || statusLower.includes('متأخر')) {
+      return 'bg-red-100 text-red-800 border-red-200';
     }
+    return 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
   const formatDate = (dateString: string) => {
@@ -119,267 +140,217 @@ const ShipsGoTrackingCard: React.FC<ShipsGoTrackingCardProps> = ({ trackingData 
     });
   };
 
-  return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">
-              {trackingData.shipmentInfo?.trackingNumber || data.container_number}
-            </h2>
-            <p className="text-blue-100">
-              {trackingData.shipmentInfo?.description || `${data.shipping_line} - ${data.vessel_name}`}
-            </p>
-          </div>
-          <Ship className="h-12 w-12 text-blue-200" />
-        </div>
-      </div>
+  // Calculate progress based on milestones
+  const getProgressPercentage = () => {
+    if (!data.milestones || data.milestones.length === 0) return 0;
+    const completedMilestones = data.milestones.filter(m => 
+      m.status?.toLowerCase() === 'completed' || 
+      m.status?.toLowerCase() === 'مكتمل'
+    ).length;
+    return Math.min(Math.max((completedMilestones / data.milestones.length) * 100, 5), 100);
+  };
 
-      {/* Status and Basic Info */}
-      <div className="p-6 border-b">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="flex items-center">
-            <div className="flex items-center">
-              {getStatusIcon(data.status)}
-              <div className="mr-3">
-                <p className="text-sm text-gray-600">الحالة</p>
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(data.status)}`}>
-                  {data.status}
-                </span>
-              </div>
+  return (
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+      {/* Enhanced Header */}
+      <div className="bg-gradient-to-r from-primary-600 to-primary-700 p-6 text-white">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3 rtl:space-x-reverse">
+            <Package className="h-8 w-8" />
+            <div>
+              <h2 className="text-2xl font-bold">
+                {data.container_number || data.bl_number || 'غير محدد'}
+              </h2>
+              <p className="text-blue-100">
+                {data.shipping_line || 'Golden Horse Shipping'}
+              </p>
             </div>
           </div>
           
-          {data.vessel_name && (
-            <div className="flex items-center">
-              <Ship className="h-5 w-5 text-gray-500 mr-2" />
-              <div>
-                <p className="text-sm text-gray-600">السفينة</p>
-                <p className="font-semibold">{data.vessel_name}</p>
-                {data.voyage && <p className="text-sm text-gray-500">{data.voyage}</p>}
+          <div className="flex items-center space-x-3 rtl:space-x-reverse">
+            <div className={`px-4 py-2 rounded-full text-sm font-medium border ${getStatusColor(data.status)}`}>
+              <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                {getStatusIcon(data.status)}
+                <span>{data.status || 'غير محدد'}</span>
               </div>
             </div>
-          )}
+            
+            {data.container_number && (
+              <button
+                onClick={() => setShowMap(!showMap)}
+                className="flex items-center space-x-2 rtl:space-x-reverse px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+              >
+                {showMap ? <EyeOff className="h-4 w-4" /> : <Map className="h-4 w-4" />}
+                <span>{showMap ? 'إخفاء الخريطة' : 'عرض الخريطة'}</span>
+              </button>
+            )}
+          </div>
+        </div>
 
-          {data.shipping_line && (
-            <div className="flex items-center">
-              <Anchor className="h-5 w-5 text-gray-500 mr-2" />
-              <div>
-                <p className="text-sm text-gray-600">خط الشحن</p>
-                <p className="font-semibold">{data.shipping_line}</p>
-              </div>
-            </div>
-          )}
+        {/* Progress Bar */}
+        <div className="w-full bg-white/20 rounded-full h-2">
+          <div 
+            className="bg-white h-2 rounded-full transition-all duration-500 ease-out"
+            style={{ width: `${getProgressPercentage()}%` }}
+          />
+        </div>
+        <div className="flex justify-between text-sm text-blue-100 mt-2">
+          <span>البداية</span>
+          <span>{Math.round(getProgressPercentage())}% مكتمل</span>
+          <span>الوصول</span>
         </div>
       </div>
 
-      {/* Route Information */}
+      {/* Live Map Section */}
+      {showMap && data.container_number && (
+        <div className="border-b">
+          <ShipsGoLiveMap
+            containerNumber={data.container_number}
+            height="500px"
+            showControls={true}
+            onContainerChange={(newContainer) => {
+              console.log('Container changed to:', newContainer);
+            }}
+          />
+        </div>
+      )}
+
+      {/* Enhanced Route Information */}
       <div className="p-6 border-b">
         <h3 className="text-lg font-semibold mb-4 flex items-center">
           <Navigation className="h-5 w-5 mr-2" />
-          المسار
+          معلومات المسار
         </h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-          <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Origin */}
+          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
             <div className="flex items-start">
-              <MapPin className="h-5 w-5 text-green-500 mr-2 mt-1" />
-              <div>
-                <p className="font-semibold text-green-700">المنشأ</p>
-                <p className="text-gray-700">{data.port_of_loading || 'N/A'}</p>
-                {data.estimated_departure && (
-                  <p className="text-sm text-gray-500 flex items-center mt-1">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    {formatDate(data.estimated_departure)}
-                  </p>
-                )}
+              <MapPin className="h-5 w-5 text-green-600 mr-2 mt-1" />
+              <div className="flex-1">
+                <p className="font-semibold text-green-800 mb-1">ميناء المنشأ</p>
+                <p className="text-gray-700 font-medium">{data.port_of_loading || 'غير محدد'}</p>
+                <div className="mt-2 space-y-1">
+                  {data.estimated_departure && (
+                    <p className="text-sm text-gray-600 flex items-center">
+                      <Calendar className="h-4 w-4 mr-1" />
+                      <span className="font-medium">المغادرة المتوقعة:</span>
+                      <span className="mr-2">{formatDate(data.estimated_departure)}</span>
+                    </p>
+                  )}
+                  {data.actual_departure && (
+                    <p className="text-sm text-green-700 flex items-center">
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      <span className="font-medium">المغادرة الفعلية:</span>
+                      <span className="mr-2">{formatDate(data.actual_departure)}</span>
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          <div>
+          {/* Destination */}
+          <div className="bg-red-50 rounded-lg p-4 border border-red-200">
             <div className="flex items-start">
-              <MapPin className="h-5 w-5 text-red-500 mr-2 mt-1" />
-              <div>
-                <p className="font-semibold text-red-700">الوجهة</p>
-                <p className="text-gray-700">{data.port_of_discharge || 'N/A'}</p>
-                {data.estimated_arrival && (
-                  <p className="text-sm text-gray-500 flex items-center mt-1">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    {formatDate(data.estimated_arrival)}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Route Path Visualization */}
-        <div className="bg-gray-50 rounded-lg p-4 mt-2 border border-gray-200 shadow-sm">
-          <div className="flex justify-between items-center mb-3">
-            <p className="text-sm font-medium text-gray-700">خط السير الحالي</p>
-            {data.location && data.location.latitude !== null && data.location.longitude !== null ? (
-              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
-                تتبع نشط
-              </span>
-            ) : (
-              <span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full flex items-center">
-                <div className="w-2 h-2 bg-amber-500 rounded-full mr-1"></div>
-                بيانات التتبع غير متوفرة
-              </span>
-            )}
-          </div>
-          
-          <div className="relative">
-            {/* Route Progress Bar */}
-            <div className="h-3 bg-gray-200 rounded-full w-full">
-              <div 
-                className="h-3 bg-blue-500 rounded-full relative" 
-                style={{ 
-                  width: data.location && data.location.latitude !== null ? 
-                    `${Math.min(Math.max((data.milestones.filter(m => m.status?.toLowerCase() === 'completed').length / data.milestones.length) * 100, 10), 100)}%` : 
-                    '0%' 
-                }}
-              >
-                {/* Gradient overlay for better visual effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-400 opacity-75 rounded-full"></div>
-              </div>
-            </div>
-            
-            {/* Route Points */}
-            <div className="flex justify-between mt-4 relative">
-              {/* Origin Point */}
-              <div className="flex flex-col items-center">
-                <div className="w-4 h-4 bg-primary-600 rounded-full border-2 border-white shadow-md"></div>
-                <div className="text-xs font-medium text-secondary-800 mt-1">{data.port_of_loading || 'المنشأ'}</div>
-                {data.estimated_departure && (
-                  <div className="text-xs text-secondary-500">{formatDate(data.estimated_departure).split(' ')[0]}</div>
-                )}
-              </div>
-              
-              {/* Current Location Point */}
-              {data.location && data.location.latitude !== null && data.location.longitude !== null && (
-                <div className="absolute" style={{ 
-                  left: `${Math.min(Math.max((data.milestones.filter(m => m.status?.toLowerCase() === 'completed').length / data.milestones.length) * 100, 10), 95)}%`,
-                  top: '-12px',
-                  transform: 'translateX(-50%)'
-                }}>
-                  <div className="flex flex-col items-center">
-                    <div className="w-6 h-6 bg-primary-600 rounded-full animate-pulse border-2 border-white shadow-lg flex items-center justify-center">
-                      <Navigation className="h-3 w-3 text-white" />
-                    </div>
-                    <div className="text-xs font-semibold text-primary-700 mt-1 whitespace-nowrap bg-white px-2 py-0.5 rounded-full shadow-sm border border-primary-100">
-                      الموقع الحالي
-                    </div>
-                  </div>
+              <MapPin className="h-5 w-5 text-red-600 mr-2 mt-1" />
+              <div className="flex-1">
+                <p className="font-semibold text-red-800 mb-1">ميناء الوجهة</p>
+                <p className="text-gray-700 font-medium">{data.port_of_discharge || 'غير محدد'}</p>
+                <div className="mt-2 space-y-1">
+                  {data.estimated_arrival && (
+                    <p className="text-sm text-gray-600 flex items-center">
+                      <Calendar className="h-4 w-4 mr-1" />
+                      <span className="font-medium">الوصول المتوقع:</span>
+                      <span className="mr-2">{formatDate(data.estimated_arrival)}</span>
+                    </p>
+                  )}
+                  {data.actual_arrival && (
+                    <p className="text-sm text-green-700 flex items-center">
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      <span className="font-medium">الوصول الفعلي:</span>
+                      <span className="mr-2">{formatDate(data.actual_arrival)}</span>
+                    </p>
+                  )}
                 </div>
-              )}
-              
-              {/* Destination Point */}
-              <div className="flex flex-col items-center">
-                <div className="w-4 h-4 bg-secondary-800 rounded-full border-2 border-white shadow-md"></div>
-                <div className="text-xs font-medium text-secondary-800 mt-1">{data.port_of_discharge || 'الوجهة'}</div>
-                {data.estimated_arrival && (
-                  <div className="text-xs text-secondary-500">{formatDate(data.estimated_arrival).split(' ')[0]}</div>
-                )}
               </div>
-            </div>
-            
-            {/* Last Updated Information */}
-            <div className="mt-4 pt-3 border-t border-gray-200">
-              {data.location && data.location.latitude !== null && data.location.longitude !== null ? (
-                <div className="flex justify-between items-center">
-                  <div className="text-xs text-secondary-700 flex items-center">
-                    <MapPin className="h-3 w-3 mr-1 text-primary-600" />
-                    <span>الإحداثيات: {data.location.latitude.toFixed(4)}, {data.location.longitude.toFixed(4)}</span>
-                  </div>
-                  <div className="text-xs text-secondary-700 flex items-center">
-                    <Clock className="h-3 w-3 mr-1 text-primary-600" />
-                    <span>آخر تحديث: {formatDate(data.location.timestamp || new Date().toISOString())}</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-xs text-secondary-700 flex items-center justify-center">
-                  <AlertTriangle className="h-3 w-3 mr-1 text-primary-500" />
-                  <span>لا تتوفر بيانات الموقع الحالي. سيتم التحديث عند توفر البيانات.</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Environmental & Transit Info */}
-      {(data.co2_emissions || data.transit_time) && (
+      {/* Current Location Status */}
+      {data.location && (
         <div className="p-6 border-b">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {data.co2_emissions && (
-              <div className="flex items-center">
-                <Leaf className="h-5 w-5 text-green-500 mr-2" />
-                <div>
-                  <p className="text-sm text-gray-600">انبعاثات الكربون</p>
-                  <p className="font-semibold">{data.co2_emissions} kg CO₂</p>
+          <h3 className="text-lg font-semibold mb-4 flex items-center">
+            <MapPin className="h-5 w-5 mr-2 text-blue-600" />
+            الموقع الحالي
+          </h3>
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            {data.location.latitude !== null && data.location.longitude !== null ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-blue-800">حالة التتبع</span>
+                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
+                    نشط
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">خط العرض</p>
+                    <p className="font-mono text-blue-800 font-semibold">{data.location.latitude.toFixed(6)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">خط الطول</p>
+                    <p className="font-mono text-blue-800 font-semibold">{data.location.longitude.toFixed(6)}</p>
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-blue-200">
+                  <p className="text-xs text-blue-700 flex items-center">
+                    <Clock className="h-3 w-3 mr-1" />
+                    آخر تحديث: {formatDate(data.location.timestamp || new Date().toISOString())}
+                  </p>
                 </div>
               </div>
-            )}
-            
-            {data.transit_time && (
-              <div className="flex items-center">
-                <Clock className="h-5 w-5 text-blue-500 mr-2" />
-                <div>
-                  <p className="text-sm text-gray-600">وقت العبور</p>
-                  <p className="font-semibold">{data.transit_time} أيام</p>
-                </div>
+            ) : (
+              <div className="text-center py-4">
+                <AlertCircle className="h-8 w-8 text-orange-500 mx-auto mb-2" />
+                <p className="text-orange-800 font-medium">بيانات الموقع غير متوفرة حالياً</p>
+                <p className="text-sm text-orange-600 mt-1">سيتم التحديث عند توفر إشارة GPS</p>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Current Location */}
-      {data.location && (
+      {/* Environmental & Transit Info */}
+      {(data.co2_emissions || data.transit_time) && (
         <div className="p-6 border-b">
-          <h3 className="text-lg font-semibold mb-4 flex items-center">
-            <MapPin className="h-5 w-5 mr-2" />
-            الموقع الحالي
-          </h3>
-          <div className="bg-gray-50 rounded-lg p-4">
-            {data.location && data.location.latitude !== undefined && data.location.latitude !== null && 
-             data.location.longitude !== undefined && data.location.longitude !== null ? (
-              <>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-gray-600">الإحداثيات</p>
-                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">متصل</span>
+          <h3 className="text-lg font-semibold mb-4">معلومات إضافية</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {data.co2_emissions && (
+              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                <div className="flex items-center">
+                  <Leaf className="h-5 w-5 text-green-600 mr-2" />
+                  <div>
+                    <p className="text-sm text-green-700 font-medium">انبعاثات الكربون</p>
+                    <p className="text-lg font-bold text-green-800">{data.co2_emissions} kg CO₂</p>
+                  </div>
                 </div>
-                <div className="bg-white p-3 rounded-lg border border-gray-200 mb-2">
-                  <p className="font-mono text-sm flex items-center">
-                    <MapPin className="h-4 w-4 text-blue-500 mr-2" />
-                    {Number(data.location.latitude).toFixed(4)}, {Number(data.location.longitude).toFixed(4)}
-                  </p>
+              </div>
+            )}
+            
+            {data.transit_time && (
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <div className="flex items-center">
+                  <Clock className="h-5 w-5 text-blue-600 mr-2" />
+                  <div>
+                    <p className="text-sm text-blue-700 font-medium">مدة العبور</p>
+                    <p className="text-lg font-bold text-blue-800">{data.transit_time} يوم</p>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-2 flex items-center">
-                  <Clock className="h-3 w-3 mr-1" />
-                  آخر تحديث: {formatDate(data.location.timestamp || new Date().toISOString())}
-                </p>
-              </>
-            ) : (
-              <>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-gray-600">الموقع</p>
-                  <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">غير متصل</span>
-                </div>
-                <div className="bg-white p-3 rounded-lg border border-gray-200 mb-2">
-                  <p className="text-sm text-orange-600 flex items-center">
-                    <AlertCircle className="h-4 w-4 text-orange-500 mr-2" />
-                    الإحداثيات غير متوفرة حالياً
-                  </p>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  سيتم تحديث الموقع عند توفر بيانات GPS من السفينة
-                </p>
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -395,28 +366,53 @@ const ShipsGoTrackingCard: React.FC<ShipsGoTrackingCardProps> = ({ trackingData 
         </div>
       )}
 
-      {/* Additional Info */}
+      {/* Additional Info Footer */}
       <div className="bg-gray-50 p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           {data.container_number && (
-            <div>
-              <span className="text-gray-600">رقم الحاوية: </span>
-              <span className="font-mono">{data.container_number}</span>
+            <div className="flex items-center">
+              <Package className="h-4 w-4 text-gray-500 mr-2" />
+              <div>
+                <span className="text-gray-600">رقم الحاوية: </span>
+                <span className="font-mono font-semibold">{data.container_number}</span>
+              </div>
             </div>
           )}
           {data.bl_number && (
-            <div>
-              <span className="text-gray-600">رقم بوليصة الشحن: </span>
-              <span className="font-mono">{data.bl_number}</span>
+            <div className="flex items-center">
+              <FileText className="h-4 w-4 text-gray-500 mr-2" />
+              <div>
+                <span className="text-gray-600">رقم بوليصة الشحن: </span>
+                <span className="font-mono font-semibold">{data.bl_number}</span>
+              </div>
             </div>
           )}
           {data.booking_number && (
-            <div>
-              <span className="text-gray-600">رقم الحجز: </span>
-              <span className="font-mono">{data.booking_number}</span>
+            <div className="flex items-center">
+              <Calendar className="h-4 w-4 text-gray-500 mr-2" />
+              <div>
+                <span className="text-gray-600">رقم الحجز: </span>
+                <span className="font-mono font-semibold">{data.booking_number}</span>
+              </div>
             </div>
           )}
         </div>
+        
+        {data.vessel_name && (
+          <div className="mt-3 pt-3 border-t border-gray-200">
+            <div className="flex items-center text-sm">
+              <Ship className="h-4 w-4 text-gray-500 mr-2" />
+              <span className="text-gray-600">السفينة: </span>
+              <span className="font-semibold mr-2">{data.vessel_name}</span>
+              {data.voyage && (
+                <>
+                  <span className="text-gray-600">| الرحلة: </span>
+                  <span className="font-semibold">{data.voyage}</span>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,25 +1,28 @@
 const sqlite3 = require('sqlite3').verbose();
 
 async function updateCustomerNumbers() {
-  console.log('🔄 Updating customer numbers...');
+  console.log('🔄 Updating customer numbers to new GH-XXXXXX format...');
   
   const db = new sqlite3.Database('./database.sqlite');
   
   try {
-    // Get all customers without customer numbers
+    // Get all customers
     const customers = await new Promise((resolve, reject) => {
-      db.all('SELECT id, tracking_number, customer_name FROM customer_accounts WHERE customer_number IS NULL', (err, rows) => {
+      db.all('SELECT id, tracking_number, customer_name, customer_number FROM customer_accounts', (err, rows) => {
         if (err) reject(err);
         else resolve(rows);
       });
     });
     
-    console.log(`Found ${customers.length} customers without customer numbers`);
+    console.log(`Found ${customers.length} customers to update`);
     
-    // Update each customer with a generated customer number
+    // Update each customer with a new GH-XXXXXX format customer number
     for (let i = 0; i < customers.length; i++) {
       const customer = customers[i];
-      const customerNumber = `CUST-${String(i + 1).padStart(4, '0')}`;
+      
+      // Generate new customer number in GH-XXXXXX format
+      const randomNum = Math.floor(Math.random() * 999999).toString().padStart(6, '0');
+      const customerNumber = `GH-${randomNum}`;
       
       await new Promise((resolve, reject) => {
         db.run(
@@ -30,7 +33,7 @@ async function updateCustomerNumbers() {
               console.error(`Error updating customer ${customer.id}:`, err.message);
               reject(err);
             } else {
-              console.log(`✅ Updated ${customer.customer_name}: ${customerNumber}`);
+              console.log(`✅ Updated ${customer.customer_name}: ${customer.customer_number || 'NULL'} → ${customerNumber}`);
               resolve();
             }
           }
@@ -38,7 +41,7 @@ async function updateCustomerNumbers() {
       });
     }
     
-    console.log('✅ All customer numbers updated successfully!');
+    console.log('✅ All customer numbers updated to new GH-XXXXXX format!');
     
     // Verify the updates
     db.all('SELECT id, tracking_number, customer_number, customer_name FROM customer_accounts', (err, rows) => {
@@ -52,9 +55,8 @@ async function updateCustomerNumbers() {
     });
     
   } catch (error) {
-    console.error('❌ Update failed:', error.message);
+    console.error('❌ Error updating customer numbers:', error.message);
     db.close();
-    process.exit(1);
   }
 }
 

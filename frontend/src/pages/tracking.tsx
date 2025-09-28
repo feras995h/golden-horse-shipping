@@ -91,17 +91,35 @@ const TrackingPage = () => {
     } catch (err: any) {
       if (axios.isAxiosError(err) && err.response) {
         const status = err.response.status;
+        const errorData = err.response.data;
+        
         if (status === 401 || status === 403) {
-          setError(t('messages.unauthorized'));
+          setError('غير مصرح لك بالوصول إلى هذه البيانات. تأكد من صحة رقم التتبع.');
         } else if (status === 429) {
-          setError('تم إرسال عدد كبير من الطلبات. حاول لاحقًا.');
+          setError('تم إرسال عدد كبير من الطلبات. يرجى المحاولة مرة أخرى بعد دقيقة.');
         } else if (status === 404) {
-          setError(t('tracking.notFound'));
+          if (errorData?.error?.includes('Container not found') || errorData?.message?.includes('not found')) {
+            setError(`لم يتم العثور على بيانات تتبع للرقم "${searchQuery}". تأكد من صحة الرقم أو تواصل مع خدمة العملاء.`);
+          } else {
+            setError('لم يتم العثور على الشحنة المطلوبة. تأكد من صحة رقم التتبع.');
+          }
+        } else if (status === 500) {
+          if (errorData?.error?.includes('ShipsGo API')) {
+            setError('خدمة التتبع غير متاحة مؤقتاً. يرجى المحاولة مرة أخرى لاحقاً أو التواصل مع خدمة العملاء.');
+          } else {
+            setError('حدث خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.');
+          }
+        } else if (status === 502 || status === 503) {
+          setError('الخدمة غير متاحة مؤقتاً. يرجى المحاولة مرة أخرى بعد قليل.');
         } else {
-          setError(t('messages.networkError'));
+          setError(`حدث خطأ غير متوقع (${status}). يرجى التواصل مع خدمة العملاء إذا استمرت المشكلة.`);
         }
+      } else if (err.code === 'NETWORK_ERROR' || err.message?.includes('Network Error')) {
+        setError('مشكلة في الاتصال بالإنترنت. تأكد من اتصالك وحاول مرة أخرى.');
+      } else if (err.code === 'TIMEOUT') {
+        setError('انتهت مهلة الاتصال. يرجى المحاولة مرة أخرى.');
       } else {
-        setError(t('messages.networkError'));
+        setError('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى أو التواصل مع خدمة العملاء.');
       }
     } finally {
       setIsLoading(false);

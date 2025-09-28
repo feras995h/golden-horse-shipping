@@ -48,23 +48,20 @@ interface ShipmentDetails {
     enableTracking: boolean;
     notes: string;
     specialInstructions: string;
-    createdAt: string;
-    updatedAt: string;
   };
   paymentRecords: Array<{
     id: string;
     amount: number;
     currency: string;
-    paymentDate: string;
     method: string;
+    status: string;
+    paymentDate: string;
     referenceNumber: string;
     notes: string;
-    recordedBy: string;
-    createdAt: string;
   }>;
   realTimeTracking?: {
     success: boolean;
-    data?: any;
+    data: any;
     error?: string;
   };
   trackingError?: string;
@@ -76,8 +73,8 @@ const ShipmentDetails = () => {
   const { id } = router.query;
   const [shipmentData, setShipmentData] = useState<ShipmentDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshingTracking, setIsRefreshingTracking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isRefreshingTracking, setIsRefreshingTracking] = useState(false);
 
   const fetchShipmentDetails = useCallback(async () => {
     try {
@@ -87,7 +84,6 @@ const ShipmentDetails = () => {
         return;
       }
 
-      setIsLoading(true);
       const response = await axios.get(`/api/customer-portal/shipments/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -96,15 +92,14 @@ const ShipmentDetails = () => {
 
       setShipmentData(response.data);
     } catch (error: any) {
-      console.error('Shipment details error:', error);
+      console.error('Error fetching shipment details:', error);
       if (error.response?.status === 401) {
         localStorage.removeItem('customerToken');
-        localStorage.removeItem('customerData');
         router.push('/customer/login');
       } else if (error.response?.status === 404) {
-        setError('الشحنة غير موجودة أو ليس لديك صلاحية للوصول إليها');
+        setError('الشحنة غير موجودة');
       } else {
-        setError('فشل في تحميل تفاصيل الشحنة');
+        setError('حدث خطأ في تحميل تفاصيل الشحنة');
       }
     } finally {
       setIsLoading(false);
@@ -112,13 +107,14 @@ const ShipmentDetails = () => {
   }, [router, id]);
 
   const refreshTracking = async () => {
-    if (!shipmentData?.shipment.enableTracking) return;
-
+    const token = localStorage.getItem('customerToken');
+    setIsRefreshingTracking(true);
     try {
-      const token = localStorage.getItem('customerToken');
-      if (!token) return;
+      if (!token) {
+        router.push('/customer/login');
+        return;
+      }
 
-      setIsRefreshingTracking(true);
       const response = await axios.get(`/api/customer-portal/shipments/${id}/tracking`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -127,11 +123,11 @@ const ShipmentDetails = () => {
 
       setShipmentData(prev => prev ? {
         ...prev,
-        realTimeTracking: response.data.realTimeTracking,
-        trackingError: response.data.trackingError,
+        realTimeTracking: response.data,
+        trackingError: undefined
       } : null);
     } catch (error: any) {
-      console.error('Tracking refresh error:', error);
+      console.error('Error refreshing tracking:', error);
     } finally {
       setIsRefreshingTracking(false);
     }
@@ -139,18 +135,12 @@ const ShipmentDetails = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'delivered':
-        return 'text-green-600 bg-green-100';
-      case 'in_transit':
-        return 'text-blue-600 bg-blue-100';
-      case 'at_port':
-        return 'text-yellow-600 bg-yellow-100';
-      case 'customs_clearance':
-        return 'text-purple-600 bg-purple-100';
-      case 'delayed':
-        return 'text-red-600 bg-red-100';
-      default:
-        return 'text-gray-600 bg-gray-100';
+      case 'pending': return 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300';
+      case 'in_transit': return 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300';
+      case 'delivered': return 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300';
+      case 'delayed': return 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300';
+      case 'cancelled': return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300';
+      default: return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300';
     }
   };
 
@@ -162,49 +152,41 @@ const ShipmentDetails = () => {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending':
-        return 'في الانتظار';
-      case 'processing':
-        return 'قيد المعالجة';
-      case 'shipped':
-        return 'تم الشحن';
-      case 'in_transit':
-        return 'في الطريق';
-      case 'at_port':
-        return 'في الميناء';
-      case 'customs_clearance':
-        return 'التخليص الجمركي';
-      case 'delivered':
-        return 'تم التسليم';
-      case 'delayed':
-        return 'متأخر';
-      case 'cancelled':
-        return 'ملغي';
-      default:
-        return status;
+      case 'pending': return 'في الانتظار';
+      case 'confirmed': return 'مؤكدة';
+      case 'picked_up': return 'تم الاستلام';
+      case 'in_transit': return 'في الطريق';
+      case 'customs_clearance': return 'التخليص الجمركي';
+      case 'out_for_delivery': return 'خارج للتسليم';
+      case 'delivered': return 'تم التسليم';
+      case 'delayed': return 'متأخرة';
+      case 'cancelled': return 'ملغية';
+      case 'returned': return 'مرتجعة';
+      case 'lost': return 'مفقودة';
+      case 'damaged': return 'تالفة';
+      default: return status;
     }
   };
 
   const getPaymentMethodText = (method: string) => {
     switch (method) {
-      case 'cash':
-        return 'نقداً';
-      case 'bank_transfer':
-        return 'تحويل بنكي';
-      case 'credit_card':
-        return 'بطاقة ائتمان';
-      case 'check':
-        return 'شيك';
-      default:
-        return method;
+      case 'cash': return 'نقداً';
+      case 'bank_transfer': return 'تحويل بنكي';
+      case 'credit_card': return 'بطاقة ائتمان';
+      case 'check': return 'شيك';
+      case 'cod': return 'الدفع عند الاستلام';
+      default: return method;
     }
   };
 
   if (isLoading) {
     return (
       <CustomerLayout>
-        <div className="flex items-center justify-center min-h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-600"></div>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-gradient-to-r from-indigo-200 to-purple-200 rounded-full animate-spin border-t-transparent shadow-lg"></div>
+            <div className="absolute inset-0 w-16 h-16 border-4 border-gradient-to-r from-purple-300 to-pink-300 rounded-full animate-pulse opacity-75"></div>
+          </div>
         </div>
       </CustomerLayout>
     );
@@ -213,15 +195,17 @@ const ShipmentDetails = () => {
   if (error) {
     return (
       <CustomerLayout>
-        <div className="text-center py-12">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600 mb-4">{error}</p>
-          <Link
-            href="/customer/shipments"
-            className="bg-gold-600 text-white px-4 py-2 rounded-lg hover:bg-gold-700"
+        <div className="bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-2xl p-8 text-center shadow-xl">
+          <div className="p-4 bg-gradient-to-br from-red-100 to-red-200 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center shadow-lg">
+            <AlertCircle className="h-10 w-10 text-red-600" />
+          </div>
+          <p className="text-red-600 mb-6 text-lg font-medium">{error}</p>
+          <button
+            onClick={fetchShipmentDetails}
+            className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-red-600 hover:to-red-700 transition-all duration-300 hover:scale-105"
           >
-            العودة إلى الشحنات
-          </Link>
+            إعادة المحاولة
+          </button>
         </div>
       </CustomerLayout>
     );
@@ -230,8 +214,11 @@ const ShipmentDetails = () => {
   if (!shipmentData) {
     return (
       <CustomerLayout>
-        <div className="text-center py-12">
-          <p className="text-gray-600">لا توجد بيانات متاحة</p>
+        <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-2xl p-8 text-center shadow-xl">
+          <div className="p-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center shadow-lg">
+            <Package className="h-10 w-10 text-gray-600" />
+          </div>
+          <p className="text-gray-600 text-lg font-medium">لا توجد بيانات للشحنة</p>
         </div>
       </CustomerLayout>
     );
@@ -248,121 +235,157 @@ const ShipmentDetails = () => {
 
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4 space-x-reverse">
-            <Link
-              href="/customer/shipments"
-              className="text-gray-400 hover:text-gray-600"
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl shadow-indigo-100/50 border border-indigo-200/30 p-6 hover:shadow-2xl hover:shadow-indigo-200/50 transition-all duration-300 group relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="flex items-center justify-between relative z-10">
+            <div className="flex items-center space-x-4 space-x-reverse">
+              <Link
+                href="/customer/shipments"
+                className="p-3 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl shadow-md hover:shadow-lg hover:from-indigo-200 hover:to-indigo-300 transition-all duration-300 hover:scale-110 group/back"
+              >
+                <ArrowLeft className="h-6 w-6 text-indigo-600 group-hover/back:text-indigo-700 transition-colors duration-300" />
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  {shipment.trackingNumber}
+                </h1>
+                <p className="text-indigo-600/70 font-medium mt-1">{shipment.description}</p>
+              </div>
+            </div>
+            <div
+              className={`px-6 py-3 rounded-full text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 ${getStatusColor(
+                shipment.status
+              )}`}
             >
-              <ArrowLeft className="h-6 w-6" />
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {shipment.trackingNumber}
-              </h1>
-              <p className="text-gray-600">{shipment.description}</p>
+              {getStatusText(shipment.status)}
             </div>
           </div>
-          <span
-            className={`px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(
-              shipment.status
-            )}`}
-          >
-            {getStatusText(shipment.status)}
-          </span>
         </div>
 
         {/* Real-time Tracking */}
         {shipment.enableTracking && (
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">التتبع المباشر</h2>
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl shadow-indigo-100/50 border border-indigo-200/30 p-6 hover:shadow-2xl hover:shadow-indigo-200/50 transition-all duration-300 group relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="flex items-center justify-between mb-6 relative z-10">
+              <h2 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent flex items-center">
+                <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg mr-3 shadow-sm">
+                  <ExternalLink className="h-5 w-5 text-indigo-600" />
+                </div>
+                التتبع المباشر
+              </h2>
               <button
                 onClick={refreshTracking}
                 disabled={isRefreshingTracking}
-                className="flex items-center text-gold-600 hover:text-gold-700 disabled:opacity-50"
+                className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshingTracking ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-4 w-4 ml-2 ${isRefreshingTracking ? 'animate-spin' : ''}`} />
                 تحديث
               </button>
             </div>
 
             {trackingError ? (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="bg-gradient-to-br from-red-50 to-red-100 border border-red-200/50 rounded-xl p-6 shadow-md">
                 <div className="flex items-center">
-                  <AlertCircle className="h-5 w-5 text-red-600 mr-3" />
-                  <p className="text-red-800 text-sm">{trackingError}</p>
+                  <div className="p-2 bg-gradient-to-br from-red-100 to-red-200 rounded-lg mr-3 shadow-sm">
+                    <AlertCircle className="h-5 w-5 text-red-600" />
+                  </div>
+                  <p className="text-red-800 font-medium">{trackingError}</p>
                 </div>
               </div>
-            ) : realTimeTracking?.success ? (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center mb-3">
-                  <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
-                  <p className="text-green-800 font-medium">بيانات التتبع المباشر متاحة</p>
-                </div>
+            ) : realTimeTracking ? (
+              <div className="space-y-6 relative z-10">
                 {realTimeTracking.data && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="font-medium">الحاوية:</span> {realTimeTracking.data.container_number}
-                      </div>
-                      <div>
-                        <span className="font-medium">السفينة:</span> {realTimeTracking.data.vessel_name}
-                      </div>
-                      <div>
-                        <span className="font-medium">الحالة:</span> {realTimeTracking.data.status}
-                      </div>
-                      <div>
-                        <span className="font-medium">آخر تحديث:</span> {new Date().toLocaleString('ar-SA')}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200/50 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
+                      <div className="flex items-center">
+                        <Package className="h-5 w-5 text-green-600 mr-3" />
+                        <div>
+                          <p className="text-sm font-medium text-green-700">رقم الحاوية</p>
+                          <span className="text-green-800 mr-2 font-semibold">{realTimeTracking.data.container_number}</span>
+                        </div>
                       </div>
                     </div>
-                    
-                    {/* Last Known Location */}
-                    {realTimeTracking.data.location && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h4 className="font-medium text-blue-900 mb-2 flex items-center">
-                          <MapPin className="h-4 w-4 mr-2" />
-                          آخر موقع معروف
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                          <div>
-                            <span className="font-medium">خط العرض:</span> {realTimeTracking.data.location.latitude}
-                          </div>
-                          <div>
-                            <span className="font-medium">خط الطول:</span> {realTimeTracking.data.location.longitude}
-                          </div>
-                          <div>
-                            <span className="font-medium">التوقيت:</span> {new Date(realTimeTracking.data.location.timestamp).toLocaleString('ar-SA')}
-                          </div>
-                          <div>
-                            <span className="font-medium">السرعة:</span> {realTimeTracking.data.location.speed || 'غير متاح'} عقدة
-                          </div>
+                    <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200/50 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
+                      <div className="flex items-center">
+                        <Ship className="h-5 w-5 text-blue-600 mr-3" />
+                        <div>
+                          <p className="text-sm font-medium text-blue-700">اسم السفينة</p>
+                          <span className="text-blue-800 mr-2 font-semibold">{realTimeTracking.data.vessel_name}</span>
                         </div>
                       </div>
-                    )}
+                    </div>
+                    <div className="bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200/50 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
+                      <div className="flex items-center">
+                        <CheckCircle className="h-5 w-5 text-purple-600 mr-3" />
+                        <div>
+                          <p className="text-sm font-medium text-purple-700">الحالة</p>
+                          <span className="text-purple-800 mr-2 font-semibold">{realTimeTracking.data.status}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200/50 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
+                      <div className="flex items-center">
+                        <Clock className="h-5 w-5 text-orange-600 mr-3" />
+                        <div>
+                          <p className="text-sm font-medium text-orange-700">آخر تحديث</p>
+                          <span className="text-orange-800 mr-2 font-semibold">{new Date().toLocaleString('ar-SA')}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                      
+                {/* Last Known Location */}
+                {realTimeTracking.data.location && (
+                  <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200/50 rounded-xl p-6 shadow-md">
+                    <h4 className="font-semibold text-blue-900 mb-4 flex items-center text-lg">
+                      <div className="p-2 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg mr-3 shadow-sm">
+                        <MapPin className="h-5 w-5 text-blue-600" />
+                      </div>
+                      آخر موقع معروف
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="flex items-center p-3 bg-white/50 rounded-lg border border-blue-200/30">
+                        <span className="font-medium text-blue-700">خط العرض:</span>
+                        <span className="text-blue-800 mr-2 font-semibold">{realTimeTracking.data.location.latitude}</span>
+                      </div>
+                      <div className="flex items-center p-3 bg-white/50 rounded-lg border border-blue-200/30">
+                        <span className="font-medium text-blue-700">خط الطول:</span>
+                        <span className="text-blue-800 mr-2 font-semibold">{realTimeTracking.data.location.longitude}</span>
+                      </div>
+                      <div className="flex items-center p-3 bg-white/50 rounded-lg border border-blue-200/30">
+                        <Clock className="h-4 w-4 text-blue-600 mr-2" />
+                        <span className="font-medium text-blue-700">التوقيت:</span>
+                        <span className="text-blue-800 mr-2 font-semibold">{new Date(realTimeTracking.data.location.timestamp).toLocaleString('ar-SA')}</span>
+                      </div>
+                      <div className="flex items-center p-3 bg-white/50 rounded-lg border border-blue-200/30">
+                        <span className="font-medium text-blue-700">السرعة:</span>
+                        <span className="text-blue-800 mr-2 font-semibold">{realTimeTracking.data.location.speed || 'غير متاح'} عقدة</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-                    {/* Milestones */}
-                    {realTimeTracking.data.milestones && realTimeTracking.data.milestones.length > 0 && (
-                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                        <h4 className="font-medium text-gray-900 mb-3">مراحل التتبع</h4>
-                        <div className="space-y-2">
-                          {realTimeTracking.data.milestones.map((milestone: any, index: number) => (
-                            <div key={index} className="flex items-center text-sm">
-                              <div className="w-2 h-2 bg-gold-500 rounded-full mr-3"></div>
-                              <div className="flex-1">
-                                <span className="font-medium">{milestone.event}</span>
-                                {milestone.location && (
-                                  <span className="text-gray-600 mr-2"> - {milestone.location}</span>
-                                )}
-                              </div>
-                              <div className="text-gray-500">
-                                {milestone.timestamp ? new Date(milestone.timestamp).toLocaleDateString('ar-SA') : 'غير محدد'}
-                              </div>
-                            </div>
-                          ))}
+                {/* Milestones */}
+                {realTimeTracking.data.milestones && realTimeTracking.data.milestones.length > 0 && (
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-3">مراحل التتبع</h4>
+                    <div className="space-y-2">
+                      {realTimeTracking.data.milestones.map((milestone: any, index: number) => (
+                        <div key={index} className="flex items-center text-sm">
+                          <div className="w-2 h-2 bg-gold-500 rounded-full mr-3"></div>
+                          <div className="flex-1">
+                            <span className="font-medium">{milestone.event}</span>
+                            {milestone.location && (
+                              <span className="text-gray-600 mr-2"> - {milestone.location}</span>
+                            )}
+                          </div>
+                          <div className="text-gray-500">
+                            {milestone.timestamp ? new Date(milestone.timestamp).toLocaleDateString('ar-SA') : 'غير محدد'}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -451,46 +474,46 @@ const ShipmentDetails = () => {
         {/* Timeline */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">الجدول الزمني</h2>
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {shipment.estimatedDeparture && (
-              <div className="flex items-center">
-                <Calendar className="h-5 w-5 text-gray-400 mr-3" />
+              <div className="flex items-center p-3 bg-blue-50 rounded-lg">
+                <Calendar className="h-5 w-5 text-blue-600 mr-3" />
                 <div>
-                  <p className="font-medium">المغادرة المتوقعة</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm font-medium text-blue-900">المغادرة المتوقعة</p>
+                  <p className="text-blue-700">
                     {new Date(shipment.estimatedDeparture).toLocaleString('ar-SA')}
                   </p>
                 </div>
               </div>
             )}
             {shipment.actualDeparture && (
-              <div className="flex items-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+              <div className="flex items-center p-3 bg-green-50 rounded-lg">
+                <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
                 <div>
-                  <p className="font-medium">المغادرة الفعلية</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm font-medium text-green-900">المغادرة الفعلية</p>
+                  <p className="text-green-700">
                     {new Date(shipment.actualDeparture).toLocaleString('ar-SA')}
                   </p>
                 </div>
               </div>
             )}
             {shipment.estimatedArrival && (
-              <div className="flex items-center">
-                <Calendar className="h-5 w-5 text-gray-400 mr-3" />
+              <div className="flex items-center p-3 bg-yellow-50 rounded-lg">
+                <Clock className="h-5 w-5 text-yellow-600 mr-3" />
                 <div>
-                  <p className="font-medium">الوصول المتوقع</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm font-medium text-yellow-900">الوصول المتوقع</p>
+                  <p className="text-yellow-700">
                     {new Date(shipment.estimatedArrival).toLocaleString('ar-SA')}
                   </p>
                 </div>
               </div>
             )}
             {shipment.actualArrival && (
-              <div className="flex items-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+              <div className="flex items-center p-3 bg-green-50 rounded-lg">
+                <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
                 <div>
-                  <p className="font-medium">الوصول الفعلي</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm font-medium text-green-900">الوصول الفعلي</p>
+                  <p className="text-green-700">
                     {new Date(shipment.actualArrival).toLocaleString('ar-SA')}
                   </p>
                 </div>
@@ -513,9 +536,11 @@ const ShipmentDetails = () => {
                         {getPaymentMethodText(payment.method)}
                       </p>
                     </div>
-                    <p className="text-sm text-gray-500">
-                      {new Date(payment.paymentDate).toLocaleDateString('ar-SA')}
-                    </p>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">
+                        {new Date(payment.paymentDate).toLocaleDateString('ar-SA')}
+                      </p>
+                    </div>
                   </div>
                   {payment.referenceNumber && (
                     <p className="text-sm text-gray-600">
@@ -531,10 +556,10 @@ const ShipmentDetails = () => {
           </div>
         )}
 
-        {/* Notes and Instructions */}
+        {/* Additional Information */}
         {(shipment.notes || shipment.specialInstructions) && (
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">ملاحظات وتعليمات</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">معلومات إضافية</h2>
             {shipment.notes && (
               <div className="mb-4">
                 <h3 className="font-medium text-gray-900 mb-2">ملاحظات:</h3>

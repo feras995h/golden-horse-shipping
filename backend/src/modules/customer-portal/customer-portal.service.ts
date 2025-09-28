@@ -447,9 +447,12 @@ export class CustomerPortalService {
   }
 
   async getPublicTracking(trackingNumber: string) {
-    // Try to find shipment by tracking number first
+    // Try to find shipment by tracking number or container number first
     const shipment = await this.shipmentRepository.findOne({
-      where: { trackingNumber },
+      where: [
+        { trackingNumber },
+        { containerNumber: trackingNumber }
+      ],
     });
 
     if (shipment) {
@@ -458,6 +461,7 @@ export class CustomerPortalService {
         type: 'shipment',
         data: {
           trackingNumber: shipment.trackingNumber,
+          containerNumber: shipment.containerNumber,
           description: shipment.description,
           status: shipment.status,
           originPort: shipment.originPort,

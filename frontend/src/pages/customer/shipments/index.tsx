@@ -180,39 +180,48 @@ const CustomerShipments = () => {
 
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">شحناتي</h1>
-          <div className="text-sm text-gray-600">
-            إجمالي الشحنات: {shipmentsData?.pagination.total || 0}
+        <div className="flex items-center justify-between bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl shadow-indigo-100/50 border border-indigo-200/30 hover:shadow-2xl hover:shadow-indigo-200/50 transition-all duration-300 group relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="flex items-center relative z-10">
+            <div className="p-4 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl shadow-lg shadow-indigo-200/50 group-hover:scale-110 transition-transform duration-300">
+              <Package className="h-7 w-7 text-indigo-600 drop-shadow-sm" />
+            </div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-700 to-indigo-600 bg-clip-text text-transparent mr-4">
+              شحناتي
+            </h1>
+          </div>
+          <div className="text-lg font-semibold text-indigo-600/80 relative z-10">
+            إجمالي الشحنات: <span className="text-indigo-700">{shipmentsData?.pagination.total || 0}</span>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl shadow-purple-100/50 border border-purple-200/30 hover:shadow-2xl hover:shadow-purple-200/50 transition-all duration-300 group relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
             {/* Search */}
-            <div className="relative">
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+            <div className="relative group/input">
+              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-purple-400 group-hover/input:text-purple-600 transition-colors duration-300" />
               </div>
               <input
                 type="text"
                 placeholder="البحث في الشحنات..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pr-10 pl-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
+                className="block w-full pr-12 pl-4 py-3 border border-purple-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 bg-gradient-to-r from-purple-50/30 to-transparent hover:from-purple-50/50 transition-all duration-300 text-purple-700 placeholder-purple-400"
               />
             </div>
 
             {/* Status Filter */}
-            <div className="relative">
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <Filter className="h-5 w-5 text-gray-400" />
+            <div className="relative group/select">
+              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                <Filter className="h-5 w-5 text-purple-400 group-hover/select:text-purple-600 transition-colors duration-300" />
               </div>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="block w-full pr-10 pl-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
+                className="block w-full pr-12 pl-4 py-3 border border-purple-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 bg-gradient-to-r from-purple-50/30 to-transparent hover:from-purple-50/50 transition-all duration-300 text-purple-700 appearance-none cursor-pointer"
               >
                 <option value="all">جميع الحالات</option>
                 <option value="pending">في الانتظار</option>
@@ -229,11 +238,14 @@ const CustomerShipments = () => {
         </div>
 
         {/* Shipments List */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl shadow-indigo-100/50 border border-indigo-200/30 hover:shadow-2xl hover:shadow-indigo-200/50 transition-all duration-300 group relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           {filteredShipments.length === 0 ? (
-            <div className="text-center py-12">
-              <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">
+            <div className="text-center py-16 relative z-10">
+              <div className="p-6 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-2xl shadow-lg shadow-indigo-200/50 w-fit mx-auto mb-6">
+                <Package className="h-16 w-16 text-indigo-400 mx-auto drop-shadow-sm" />
+              </div>
+              <p className="text-indigo-600/70 text-lg font-medium">
                 {searchTerm || statusFilter !== 'all' 
                   ? 'لا توجد شحنات تطابق معايير البحث'
                   : 'لا توجد شحنات حالياً'
@@ -241,16 +253,16 @@ const CustomerShipments = () => {
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-indigo-200/30 relative z-10">
               {filteredShipments.map((shipment) => (
-                <div key={shipment.id} className="p-6 hover:bg-gray-50 transition-colors">
+                <div key={shipment.id} className="p-6 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-transparent transition-all duration-300 group/item">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-3 space-x-reverse">
-                      <h3 className="text-lg font-medium text-gray-900">
+                      <h3 className="text-xl font-semibold text-indigo-700 group-hover/item:text-indigo-800 transition-colors duration-300">
                         {shipment.trackingNumber}
                       </h3>
                       <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                        className={`px-4 py-2 rounded-full text-sm font-semibold shadow-md transition-all duration-300 group-hover/item:scale-105 ${getStatusColor(
                           shipment.status
                         )}`}
                       >
@@ -259,37 +271,43 @@ const CustomerShipments = () => {
                     </div>
                     <Link
                       href={`/customer/shipments/${shipment.id}`}
-                      className="flex items-center text-gold-600 hover:text-gold-700 font-medium"
+                      className="flex items-center px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-lg shadow-indigo-200/50 hover:shadow-xl hover:shadow-indigo-300/50 hover:scale-105 font-medium group-hover/item:scale-110"
                     >
                       عرض التفاصيل
                       <Eye className="h-4 w-4 mr-2" />
                     </Link>
                   </div>
 
-                  <p className="text-gray-600 mb-4">{shipment.description}</p>
+                  <p className="text-indigo-600/70 mb-4 font-medium">{shipment.description}</p>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <div className="flex items-center text-gray-500">
-                      <MapPin className="h-4 w-4 mr-2" />
+                    <div className="flex items-center text-indigo-600/60 font-medium">
+                      <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg mr-3 shadow-sm group-hover/item:scale-110 transition-transform duration-300">
+                        <MapPin className="h-4 w-4 text-indigo-600" />
+                      </div>
                       <span>{shipment.originPort} → {shipment.destinationPort}</span>
                     </div>
                     
                     {shipment.estimatedArrival && (
-                      <div className="flex items-center text-gray-500">
-                        <Calendar className="h-4 w-4 mr-2" />
+                      <div className="flex items-center text-indigo-600/60 font-medium">
+                        <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg mr-3 shadow-sm group-hover/item:scale-110 transition-transform duration-300">
+                          <Calendar className="h-4 w-4 text-indigo-600" />
+                        </div>
                         <span>الوصول المتوقع: {new Date(shipment.estimatedArrival).toLocaleDateString('ar-SA')}</span>
                       </div>
                     )}
 
-                    <div className="flex items-center text-gray-500">
-                      <Package className="h-4 w-4 mr-2" />
+                    <div className="flex items-center text-indigo-600/60 font-medium">
+                      <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg mr-3 shadow-sm group-hover/item:scale-110 transition-transform duration-300">
+                        <Package className="h-4 w-4 text-indigo-600" />
+                      </div>
                       <span>القيمة: {shipment.value} {shipment.currency}</span>
                     </div>
                   </div>
 
                   {shipment.containerNumber && (
-                    <div className="mt-2 text-sm text-gray-500">
-                      رقم الحاوية: {shipment.containerNumber}
+                    <div className="mt-3 text-sm text-indigo-600/60 font-medium bg-gradient-to-r from-indigo-50/50 to-transparent rounded-lg p-3 border border-indigo-200/30">
+                      رقم الحاوية: <span className="text-indigo-700 font-semibold">{shipment.containerNumber}</span>
                     </div>
                   )}
                 </div>
@@ -300,33 +318,49 @@ const CustomerShipments = () => {
 
         {/* Pagination */}
         {shipmentsData && shipmentsData.pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between bg-white px-6 py-4 rounded-xl shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-700">
-              عرض {((currentPage - 1) * shipmentsData.pagination.limit) + 1} إلى{' '}
-              {Math.min(currentPage * shipmentsData.pagination.limit, shipmentsData.pagination.total)} من{' '}
-              {shipmentsData.pagination.total} نتيجة
+          <div className="flex justify-center items-center space-x-4 space-x-reverse bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl shadow-indigo-100/50 border border-indigo-200/30 p-6 hover:shadow-2xl hover:shadow-indigo-200/50 transition-all duration-300 group relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="flex items-center space-x-2 space-x-reverse relative z-10">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="flex items-center px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-lg shadow-indigo-200/50 hover:shadow-xl hover:shadow-indigo-300/50 hover:scale-105 font-medium disabled:from-gray-400 disabled:to-gray-500 disabled:shadow-gray-200/50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                <ChevronLeft className="h-4 w-4 ml-1" />
+                السابق
+              </button>
+              
+              <div className="flex items-center space-x-2 space-x-reverse">
+                {Array.from({ length: Math.min(5, shipmentsData.pagination.totalPages) }, (_, i) => {
+                  const pageNum = Math.max(1, Math.min(shipmentsData.pagination.totalPages - 4, currentPage - 2)) + i;
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`px-4 py-2 rounded-xl font-semibold transition-all duration-300 shadow-md hover:scale-105 ${
+                        currentPage === pageNum
+                          ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-200/50'
+                          : 'bg-gradient-to-r from-indigo-100 to-indigo-200 text-indigo-700 hover:from-indigo-200 hover:to-indigo-300 shadow-indigo-100/50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              <button
+                onClick={() => setCurrentPage(Math.min(shipmentsData.pagination.totalPages, currentPage + 1))}
+                disabled={currentPage === shipmentsData.pagination.totalPages}
+                className="flex items-center px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-lg shadow-indigo-200/50 hover:shadow-xl hover:shadow-indigo-300/50 hover:scale-105 font-medium disabled:from-gray-400 disabled:to-gray-500 disabled:shadow-gray-200/50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                التالي
+                <ChevronRight className="h-4 w-4 mr-1" />
+              </button>
             </div>
             
-            <div className="flex items-center space-x-2 space-x-reverse">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-              
-              <span className="px-3 py-1 text-sm font-medium">
-                {currentPage} من {shipmentsData.pagination.totalPages}
-              </span>
-              
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, shipmentsData.pagination.totalPages))}
-                disabled={currentPage === shipmentsData.pagination.totalPages}
-                className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
+            <div className="text-sm text-indigo-600/70 font-medium relative z-10">
+              صفحة {currentPage} من {shipmentsData.pagination.totalPages} ({shipmentsData.pagination.total} شحنة)
             </div>
           </div>
         )}

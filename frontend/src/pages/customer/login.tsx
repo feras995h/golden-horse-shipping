@@ -6,14 +6,14 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import Layout from '@/components/Layout/Layout';
-import { Lock, User, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Lock, User, AlertCircle, Eye, EyeOff, Shield, Sparkles } from 'lucide-react';
 import axios from 'axios';
 
 const CustomerLogin = () => {
   const { t } = useTranslation('common');
   const router = useRouter();
   const [formData, setFormData] = useState({
-    trackingNumber: '',
+    customerNumber: '',
     password: '',
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -35,8 +35,8 @@ const CustomerLogin = () => {
     setError(null);
 
     try {
-      const response = await axios.post('/api/customer-auth/login', {
-        trackingNumber: formData.trackingNumber.toUpperCase(),
+      const response = await axios.post('/api/customer-auth/login-customer-number', {
+        customerNumber: formData.customerNumber.toUpperCase(),
         password: formData.password,
       });
 
@@ -50,7 +50,7 @@ const CustomerLogin = () => {
       console.error('Login error:', error);
       setError(
         error.response?.data?.message || 
-        'فشل في تسجيل الدخول. يرجى التحقق من رقم التتبع وكلمة المرور.'
+        'فشل في تسجيل الدخول. يرجى التحقق من رقم العميل وكلمة المرور.'
       );
     } finally {
       setIsLoading(false);
@@ -102,119 +102,193 @@ const CustomerLogin = () => {
         <meta name="description" content="تسجيل دخول العملاء لمتابعة الشحنات" />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gold-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div className="text-center">
-            <div className="mx-auto h-16 w-16 bg-gold-500 rounded-full flex items-center justify-center">
-              <Lock className="h-8 w-8 text-white" />
+      {/* Background with animated elements */}
+      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+        {/* Animated background elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gold-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+        </div>
+
+        {/* Floating particles */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute animate-float"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 5}s`,
+                animationDuration: `${3 + Math.random() * 4}s`
+              }}
+            >
+              <Sparkles className="w-4 h-4 text-gold-400/30" />
             </div>
-            <h2 className="mt-6 text-3xl font-bold text-gray-900">
-              تسجيل دخول العملاء
-            </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              ادخل رقم التتبع وكلمة المرور للوصول إلى حسابك
-            </p>
-          </div>
+          ))}
+        </div>
 
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div className="flex items-center">
-                  <AlertCircle className="h-5 w-5 text-red-600 mr-3" />
-                  <p className="text-red-800 text-sm">{error}</p>
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="trackingNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                  رقم التتبع
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="trackingNumber"
-                    name="trackingNumber"
-                    type="text"
-                    required
-                    value={formData.trackingNumber}
-                    onChange={handleInputChange}
-                    className="appearance-none relative block w-full px-3 py-3 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-gold-500 focus:z-10 sm:text-sm"
-                    placeholder="مثال: MSKU4603728"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  كلمة المرور
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className="appearance-none relative block w-full px-3 py-3 pr-10 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-gold-500 focus:z-10 sm:text-sm"
-                    placeholder="ادخل كلمة المرور"
-                  />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 left-0 pl-3 flex items-center"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                    ) : (
-                      <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gold-600 hover:bg-gold-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    جاري تسجيل الدخول...
-                  </div>
-                ) : (
-                  'تسجيل الدخول'
-                )}
-              </button>
-            </div>
-
+        <div className="relative z-10 flex items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-md w-full space-y-8">
+            {/* Header Section */}
             <div className="text-center">
-              <p className="text-sm text-gray-600">
-                لا تملك حساب؟{' '}
-                <Link href="/contact" className="font-medium text-gold-600 hover:text-gold-500">
-                  تواصل معنا
-                </Link>
+              <div className="mx-auto h-20 w-20 bg-gradient-to-br from-gold-400 to-gold-600 rounded-2xl flex items-center justify-center shadow-2xl transform hover:scale-105 transition-all duration-300 mb-8">
+                <Shield className="h-10 w-10 text-white" />
+              </div>
+              <h2 className="text-4xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent mb-4">
+                تسجيل دخول العملاء
+              </h2>
+              <p className="text-blue-100/80 text-lg">
+                ادخل رقم العميل وكلمة المرور للوصول إلى حسابك
               </p>
             </div>
 
-            <div className="text-center">
-              <Link href="/tracking" className="text-sm text-blue-600 hover:text-blue-500">
-                تتبع الشحنة بدون تسجيل دخول
-              </Link>
+            {/* Login Form */}
+            <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20">
+              <form className="space-y-6" onSubmit={handleSubmit}>
+                {error && (
+                  <div className="bg-red-500/20 backdrop-blur-sm border border-red-400/30 rounded-2xl p-4 animate-shake">
+                    <div className="flex items-center">
+                      <AlertCircle className="h-5 w-5 text-red-300 mr-3" />
+                      <p className="text-red-100 text-sm">{error}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-6">
+                  {/* Customer Number Field */}
+                  <div className="group">
+                    <label htmlFor="customerNumber" className="block text-sm font-medium text-blue-100 mb-3">
+                      رقم العميل
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none z-10">
+                        <User className="h-5 w-5 text-gold-400 group-focus-within:text-gold-300 transition-colors" />
+                      </div>
+                      <input
+                        id="customerNumber"
+                        name="customerNumber"
+                        type="text"
+                        required
+                        value={formData.customerNumber}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-4 pr-12 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-blue-200/60 focus:outline-none focus:ring-2 focus:ring-gold-400/50 focus:border-gold-400/50 transition-all duration-300 hover:bg-white/15"
+                        placeholder="مثال: CUST-0001"
+                      />
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-gold-400/0 via-gold-400/5 to-gold-400/0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                    </div>
+                  </div>
+
+                  {/* Password Field */}
+                  <div className="group">
+                    <label htmlFor="password" className="block text-sm font-medium text-blue-100 mb-3">
+                      كلمة المرور
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none z-10">
+                        <Lock className="h-5 w-5 text-gold-400 group-focus-within:text-gold-300 transition-colors" />
+                      </div>
+                      <input
+                        id="password"
+                        name="password"
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-4 pr-12 pl-12 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-blue-200/60 focus:outline-none focus:ring-2 focus:ring-gold-400/50 focus:border-gold-400/50 transition-all duration-300 hover:bg-white/15"
+                        placeholder="ادخل كلمة المرور"
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 left-0 pl-4 flex items-center z-10 hover:scale-110 transition-transform"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5 text-blue-300 hover:text-white transition-colors" />
+                        ) : (
+                          <Eye className="h-5 w-5 text-blue-300 hover:text-white transition-colors" />
+                        )}
+                      </button>
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-gold-400/0 via-gold-400/5 to-gold-400/0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <div className="pt-4">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="group relative w-full flex justify-center py-4 px-6 border border-transparent text-lg font-semibold rounded-2xl text-white bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] hover:shadow-2xl"
+                  >
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-gold-400 to-gold-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                    {isLoading ? (
+                      <div className="flex items-center relative z-10">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                        جاري تسجيل الدخول...
+                      </div>
+                    ) : (
+                      <span className="relative z-10">تسجيل الدخول</span>
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              {/* Additional Links */}
+              <div className="mt-8 space-y-4">
+                <div className="text-center">
+                  <p className="text-blue-100/80 text-sm">
+                    لا تملك حساب؟{' '}
+                    <Link href="/contact" className="font-medium text-gold-400 hover:text-gold-300 transition-colors hover:underline">
+                      تواصل معنا
+                    </Link>
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <Link 
+                    href="/tracking" 
+                    className="inline-flex items-center text-sm text-blue-300 hover:text-white transition-colors hover:underline"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    تتبع الشحنة بدون تسجيل دخول
+                  </Link>
+                </div>
+              </div>
             </div>
-          </form>
+
+            {/* Security Badge */}
+            <div className="text-center">
+              <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
+                <Shield className="w-4 h-4 text-green-400 mr-2" />
+                <span className="text-sm text-blue-100/80">محمي بتشفير SSL</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          75% { transform: translateX(5px); }
+        }
+        
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        
+        .animate-shake {
+          animation: shake 0.5s ease-in-out;
+        }
+      `}</style>
     </Layout>
   );
 };

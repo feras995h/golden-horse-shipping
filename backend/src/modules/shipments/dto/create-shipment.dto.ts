@@ -116,4 +116,9 @@ export class CreateShipmentDto {
   @IsString()
   @IsOptional()
   specialInstructions?: string;
+
+  @ApiProperty({ description: 'Customer account ID for portal access', required: false })
+  @IsString()
+  @IsOptional()
+  customerAccountId?: string;
 }

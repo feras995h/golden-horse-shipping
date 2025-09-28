@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, memo, useMemo } from 'react';
 import { GetStaticProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
@@ -6,6 +6,10 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import CustomerLayout from '@/components/Customer/CustomerLayout';
+import StatCard from '@/components/ui/Cards/StatCard';
+import DashboardChart from '@/components/ui/Charts/DashboardChart';
+import FadeIn, { Stagger, ScaleIn } from '@/components/ui/Animations/FadeIn';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { 
   Package, 
   Ship, 
@@ -135,12 +139,70 @@ const CustomerDashboard = () => {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
+  const statCardsData = useMemo(() => [
+    {
+      title: 'إجمالي الشحنات',
+      value: dashboardData?.statistics.totalShipments || 0,
+      icon: Package,
+      color: 'blue' as const,
+      change: {
+        value: 8,
+        type: 'increase' as const
+      }
+    },
+    {
+      title: 'الشحنات النشطة',
+      value: dashboardData?.statistics.activeShipments || 0,
+      icon: Ship,
+      color: 'gold' as const,
+      change: {
+        value: 5,
+        type: 'increase' as const
+      }
+    },
+    {
+      title: 'الشحنات المسلمة',
+      value: dashboardData?.statistics.deliveredShipments || 0,
+      icon: CheckCircle,
+      color: 'green' as const,
+      change: {
+        value: 12,
+        type: 'increase' as const
+      }
+    },
+    {
+      title: 'إجمالي المدفوعات',
+      value: dashboardData?.statistics.totalPayments || 0,
+      icon: CreditCard,
+      color: 'purple' as const,
+      change: {
+        value: 3,
+        type: 'decrease' as const
+      }
+    }
+  ], [dashboardData]);
+
+  const chartData = useMemo(() => [
+    { name: 'يناير', value: 2400 },
+    { name: 'فبراير', value: 1398 },
+    { name: 'مارس', value: 9800 },
+    { name: 'أبريل', value: 3908 },
+    { name: 'مايو', value: 4800 },
+    { name: 'يونيو', value: 3800 },
+  ], []);
+
+  const paymentMethodsData = useMemo(() => {
+    if (!dashboardData?.statistics.paymentMethods) return [];
+    return Object.entries(dashboardData.statistics.paymentMethods).map(([method, count]) => ({
+      name: method,
+      value: count as number
+    }));
+  }, [dashboardData]);
+
   if (isLoading) {
     return (
       <CustomerLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-600"></div>
-        </div>
+        <LoadingSpinner text="جاري تحميل لوحة التحكم..." />
       </CustomerLayout>
     );
   }
@@ -178,134 +240,124 @@ const CustomerDashboard = () => {
         <meta name="description" content="لوحة تحكم العميل لمتابعة الشحنات" />
       </Head>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-gold-500 to-gold-600 rounded-xl p-6 text-white">
-          <h1 className="text-2xl font-bold mb-2">
-            مرحباً، {dashboardData.customer.customerName}
-          </h1>
-          <p className="text-gold-100">
-            رقم التتبع الخاص بك: {dashboardData.customer.trackingNumber}
-          </p>
-        </div>
+        <FadeIn direction="up" delay={100}>
+          <div className="bg-gradient-to-r from-gold-500 via-gold-600 to-amber-600 rounded-2xl p-8 text-white shadow-2xl shadow-gold-200/50 border border-gold-300/30 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/20 to-transparent rounded-full -translate-y-16 translate-x-16" />
+            <div className="relative z-10">
+              <h1 className="text-3xl font-bold mb-3 drop-shadow-lg">
+                مرحباً، {dashboardData.customer.customerName}
+              </h1>
+              <p className="text-gold-100 text-lg font-medium">
+                رقم التتبع الخاص بك: {dashboardData.customer.trackingNumber}
+              </p>
+            </div>
+          </div>
+        </FadeIn>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Package className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">إجمالي الشحنات</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {dashboardData.statistics.totalShipments}
-                </p>
-              </div>
-            </div>
+        <FadeIn direction="up" delay={200}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Stagger>
+              {statCardsData.map((card, index) => (
+                <ScaleIn key={card.title} delay={index * 100}>
+                  <StatCard
+                    title={card.title}
+                    value={card.value}
+                    icon={card.icon}
+                    color={card.color}
+                    change={card.change}
+                  />
+                </ScaleIn>
+              ))}
+            </Stagger>
           </div>
+        </FadeIn>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center">
-              <div className="p-3 bg-yellow-100 rounded-lg">
-                <Ship className="h-6 w-6 text-yellow-600" />
-              </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">الشحنات النشطة</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {dashboardData.statistics.activeShipments}
-                </p>
-              </div>
-            </div>
+        {/* Charts Section */}
+        <FadeIn direction="up" delay={400}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DashboardChart
+              title="الشحنات الشهرية"
+              data={chartData}
+              type="area"
+              height={300}
+              color="#3B82F6"
+            />
+            {paymentMethodsData.length > 0 && (
+              <DashboardChart
+                title="طرق الدفع"
+                data={paymentMethodsData}
+                type="pie"
+                height={300}
+              />
+            )}
           </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">الشحنات المسلمة</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {dashboardData.statistics.deliveredShipments}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <CreditCard className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">إجمالي المدفوعات</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {dashboardData.statistics.totalPayments}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        </FadeIn>
 
         {/* Financial Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl shadow-green-100/50 border border-green-200/30 hover:shadow-2xl hover:shadow-green-200/50 transition-all duration-300 group relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="flex items-center justify-between mb-4 relative z-10">
               <div className="flex items-center">
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <DollarSign className="h-6 w-6 text-green-600" />
+                <div className="p-4 bg-gradient-to-br from-green-100 to-green-200 rounded-xl shadow-lg shadow-green-200/50 group-hover:scale-110 transition-transform duration-300">
+                  <DollarSign className="h-7 w-7 text-green-600 drop-shadow-sm" />
                 </div>
                 <div className="mr-4">
-                  <p className="text-sm font-medium text-gray-600">إجمالي القيمة</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm font-semibold text-green-600/80 mb-1">إجمالي القيمة</p>
+                  <p className="text-3xl font-bold bg-gradient-to-r from-green-700 to-green-600 bg-clip-text text-transparent">
                     ${dashboardData.statistics.totalValue.toLocaleString()}
                   </p>
                 </div>
               </div>
-              <TrendingUp className="h-5 w-5 text-green-500" />
+              <TrendingUp className="h-6 w-6 text-green-500 drop-shadow-sm group-hover:scale-110 transition-transform duration-300" />
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-green-600/70 font-medium relative z-10">
               قيمة جميع الشحنات
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl shadow-blue-100/50 border border-blue-200/30 hover:shadow-2xl hover:shadow-blue-200/50 transition-all duration-300 group relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="flex items-center justify-between mb-4 relative z-10">
               <div className="flex items-center">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Wallet className="h-6 w-6 text-blue-600" />
+                <div className="p-4 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl shadow-lg shadow-blue-200/50 group-hover:scale-110 transition-transform duration-300">
+                  <Wallet className="h-7 w-7 text-blue-600 drop-shadow-sm" />
                 </div>
                 <div className="mr-4">
-                  <p className="text-sm font-medium text-gray-600">المدفوع</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm font-semibold text-blue-600/80 mb-1">المدفوع</p>
+                  <p className="text-3xl font-bold bg-gradient-to-r from-blue-700 to-blue-600 bg-clip-text text-transparent">
                     ${dashboardData.statistics.totalPaid.toLocaleString()}
                   </p>
                 </div>
               </div>
-              <CheckCircle className="h-5 w-5 text-blue-500" />
+              <CheckCircle className="h-6 w-6 text-blue-500 drop-shadow-sm group-hover:scale-110 transition-transform duration-300" />
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-blue-600/70 font-medium relative z-10">
               المبلغ المدفوع فعلياً
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl shadow-red-100/50 border border-red-200/30 hover:shadow-2xl hover:shadow-red-200/50 transition-all duration-300 group relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="flex items-center justify-between mb-4 relative z-10">
               <div className="flex items-center">
-                <div className="p-3 bg-red-100 rounded-lg">
-                  <AlertCircle className="h-6 w-6 text-red-600" />
+                <div className="p-4 bg-gradient-to-br from-red-100 to-red-200 rounded-xl shadow-lg shadow-red-200/50 group-hover:scale-110 transition-transform duration-300">
+                  <AlertCircle className="h-7 w-7 text-red-600 drop-shadow-sm" />
                 </div>
                 <div className="mr-4">
-                  <p className="text-sm font-medium text-gray-600">المتبقي</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm font-semibold text-red-600/80 mb-1">المتبقي</p>
+                  <p className="text-3xl font-bold bg-gradient-to-r from-red-700 to-red-600 bg-clip-text text-transparent">
                     ${dashboardData.statistics.totalPending.toLocaleString()}
                   </p>
                 </div>
               </div>
-              <TrendingDown className="h-5 w-5 text-red-500" />
+              <TrendingDown className="h-6 w-6 text-red-500 drop-shadow-sm group-hover:scale-110 transition-transform duration-300" />
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-red-600/70 font-medium relative z-10">
               المبلغ المتبقي للدفع
             </div>
           </div>
@@ -313,16 +365,17 @@ const CustomerDashboard = () => {
 
         {/* Payment Methods Overview */}
         {Object.keys(dashboardData.statistics.paymentMethods).length > 0 && (
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">طرق الدفع المستخدمة</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl shadow-purple-100/50 border border-purple-200/30 hover:shadow-2xl hover:shadow-purple-200/50 transition-all duration-300 group relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <h2 className="text-xl font-bold bg-gradient-to-r from-purple-700 to-purple-600 bg-clip-text text-transparent mb-6 relative z-10">طرق الدفع المستخدمة</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 relative z-10">
               {Object.entries(dashboardData.statistics.paymentMethods).map(([method, count]) => (
-                <div key={method} className="text-center">
-                  <div className="p-3 bg-gray-100 rounded-lg mb-2">
-                    <CreditCard className="h-6 w-6 text-gray-600 mx-auto" />
+                <div key={method} className="text-center group/item hover:scale-105 transition-transform duration-300">
+                  <div className="p-4 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl mb-3 shadow-lg shadow-purple-200/50 group-hover/item:scale-110 transition-transform duration-300">
+                    <CreditCard className="h-7 w-7 text-purple-600 mx-auto drop-shadow-sm" />
                   </div>
-                  <p className="text-sm font-medium text-gray-900">{count}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-lg font-bold bg-gradient-to-r from-purple-700 to-purple-600 bg-clip-text text-transparent">{count}</p>
+                  <p className="text-sm text-purple-600/70 font-medium">
                     {method === 'cash' ? 'نقداً' :
                      method === 'bank_transfer' ? 'تحويل بنكي' :
                      method === 'credit_card' ? 'بطاقة ائتمان' :
@@ -335,39 +388,45 @@ const CustomerDashboard = () => {
         )}
 
         {/* Recent Shipments */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl shadow-indigo-100/50 border border-indigo-200/30 hover:shadow-2xl hover:shadow-indigo-200/50 transition-all duration-300 group relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="p-6 border-b border-indigo-200/30 relative z-10">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">الشحنات الأخيرة</h2>
+              <div className="flex items-center">
+                <div className="p-4 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl shadow-lg shadow-indigo-200/50 group-hover:scale-110 transition-transform duration-300">
+                  <Package className="h-7 w-7 text-indigo-600 drop-shadow-sm" />
+                </div>
+                <h2 className="text-xl font-bold bg-gradient-to-r from-indigo-700 to-indigo-600 bg-clip-text text-transparent mr-4">الشحنات الأخيرة</h2>
+              </div>
               <Link
                 href="/customer/shipments"
-                className="text-gold-600 hover:text-gold-700 text-sm font-medium"
+                className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-lg shadow-indigo-200/50 hover:shadow-xl hover:shadow-indigo-300/50 hover:scale-105 font-medium"
               >
                 عرض الكل
               </Link>
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-6 relative z-10">
             {dashboardData.recentShipments.length === 0 ? (
               <div className="text-center py-8">
-                <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">لا توجد شحنات حالياً</p>
+                <Package className="h-12 w-12 text-indigo-400 mx-auto mb-4" />
+                <p className="text-indigo-600/70">لا توجد شحنات حالياً</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {dashboardData.recentShipments.map((shipment) => (
                   <div
                     key={shipment.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                    className="border border-indigo-200/30 rounded-xl p-4 hover:shadow-lg hover:shadow-indigo-100/50 transition-all duration-300 bg-gradient-to-r from-indigo-50/30 to-transparent group/item"
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3 space-x-reverse">
-                        <h3 className="font-medium text-gray-900">
+                        <h3 className="font-semibold text-indigo-700">
                           {shipment.trackingNumber}
                         </h3>
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          className={`px-3 py-1 rounded-full text-sm font-medium shadow-sm ${getStatusColor(
                             shipment.status
                           )}`}
                         >
@@ -376,15 +435,15 @@ const CustomerDashboard = () => {
                       </div>
                       <Link
                         href={`/customer/shipments/${shipment.id}`}
-                        className="text-gold-600 hover:text-gold-700"
+                        className="text-indigo-600 hover:text-indigo-700 group-hover/item:scale-110 transition-transform duration-300"
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-5 w-5" />
                       </Link>
                     </div>
 
-                    <p className="text-sm text-gray-600 mb-2">{shipment.description}</p>
+                    <p className="text-sm text-indigo-600/70 mb-2">{shipment.description}</p>
 
-                    <div className="flex items-center text-sm text-gray-500 space-x-4 space-x-reverse">
+                    <div className="flex items-center text-sm text-indigo-600/60 space-x-4 space-x-reverse">
                       <div className="flex items-center">
                         <MapPin className="h-4 w-4 mr-1" />
                         {shipment.originPort} → {shipment.destinationPort}

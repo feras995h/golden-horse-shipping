@@ -19,12 +19,12 @@ import { AdminGuard } from '../auth/guards/admin.guard';
 
 @ApiTags('Settings')
 @Controller('settings')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
 export class SettingsController {
   constructor(private readonly settingsService: SettingsService) {}
 
   @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all system settings' })
   @ApiResponse({ status: 200, description: 'Settings retrieved successfully' })
   findAll() {
@@ -39,7 +39,8 @@ export class SettingsController {
   }
 
   @Patch()
-  @UseGuards(AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update system settings (Admin only)' })
   @ApiResponse({ status: 200, description: 'Settings updated successfully' })
   update(@Body() updateSettingsDto: UpdateSettingsDto) {
@@ -47,7 +48,8 @@ export class SettingsController {
   }
 
   @Post('backup')
-  @UseGuards(AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create system backup (Admin only)' })
   @ApiResponse({ status: 200, description: 'Backup created successfully' })
   createBackup() {
@@ -55,7 +57,8 @@ export class SettingsController {
   }
 
   @Get('backup/list')
-  @UseGuards(AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'List available backups (Admin only)' })
   @ApiResponse({ status: 200, description: 'Backup list retrieved successfully' })
   listBackups() {
@@ -63,7 +66,8 @@ export class SettingsController {
   }
 
   @Post('backup/:filename/restore')
-  @UseGuards(AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Restore from backup (Admin only)' })
   @ApiResponse({ status: 200, description: 'Backup restored successfully' })
   restoreBackup(@Body('filename') filename: string) {
@@ -71,7 +75,8 @@ export class SettingsController {
   }
 
   @Get('system-info')
-  @UseGuards(AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get system information (Admin only)' })
   @ApiResponse({ status: 200, description: 'System info retrieved successfully' })
   getSystemInfo() {
@@ -79,7 +84,8 @@ export class SettingsController {
   }
 
   @Post('upload-logo')
-  @UseGuards(AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiBearerAuth()
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'logo', maxCount: 1 },
     { name: 'favicon', maxCount: 1 },

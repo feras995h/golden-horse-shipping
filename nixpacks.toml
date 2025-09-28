@@ -2,14 +2,22 @@
 nixPkgs = ["nodejs_22", "npm-9_x"]
 
 [phases.install]
-cmds = ["npm ci", "cd backend && npm ci", "cd frontend && npm install"]
+cmds = [
+  "npm ci --no-audit --no-fund",
+  "cd backend && npm ci --no-audit --no-fund",
+  "cd frontend && npm install --no-audit --no-fund"
+]
 
 [phases.build]
-cmds = ["npm run build"]
+cmds = [
+  "cd backend && npm run build",
+  "cd frontend && npm run build"
+]
 
 [start]
-cmd = "node_modules/.bin/nest start"
+cmd = "cd backend && node dist/main"
 
 [variables]
 NODE_ENV = "production"
 PORT = "3000"
+HOSTNAME = "0.0.0.0"

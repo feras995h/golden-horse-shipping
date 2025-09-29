@@ -1,0 +1,9 @@
+{
+  "build": {
+    "builder": "DOCKERFILE"
+  },
+  "deploy": {
+    "startCommand": "cd backend && node dist/main.js",
+    "healthcheckPath": "/api/health"
+  }
+}

@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "npm run build --prefix backend && npm run build --prefix frontend",
-    "start": "npm run start:prod --prefix backend",
+    "heroku-postbuild": "npm run build --prefix backend && npm run build --prefix frontend",
+    "start": "cd backend && node dist/main.js",
+    "start:prod": "cd backend && node dist/main.js",
     "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
     "docker:build": "docker-compose build",
     "docker:start": "docker-compose up -d",

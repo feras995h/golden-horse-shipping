@@ -68,6 +68,7 @@ RUN mkdir -p /app/uploads && chown -R nextjs:nodejs /app/uploads
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+ENV DATABASE_URL=sqlite:./database.sqlite
 
 # Switch to non-root user
 USER nextjs

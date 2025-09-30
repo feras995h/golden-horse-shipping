@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { GetStaticProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
 import Head from 'next/head';
+import Image from 'next/image';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import {
   Settings,
@@ -16,7 +17,9 @@ import {
   AlertCircle,
   CheckCircle,
   HardDrive,
-  Server
+  Server,
+  ImageIcon,
+  X
 } from 'lucide-react';
 import AdminLayout from '@/components/Admin/Layout/AdminLayout';
 import { withAuth } from '@/lib/auth';
@@ -27,6 +30,12 @@ const SettingsPage = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('general');
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  
+  // Logo upload states
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Fetch settings
   const { data: settings, isLoading } = useQuery(
@@ -86,6 +95,86 @@ const SettingsPage = () => {
       setFormData(settings);
     }
   }, [settings]);
+
+  // Logo upload handlers
+  const handleLogoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/svg+xml', 'image/png', 'image/jpeg', 'image/jpg'];
+      if (!allowedTypes.includes(file.type)) {
+        setMessage({ type: 'error', text: 'يرجى اختيار ملف صورة صالح (SVG, PNG, JPG)' });
+        setTimeout(() => setMessage(null), 3000);
+        return;
+      }
+
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        setMessage({ type: 'error', text: 'حجم الملف يجب أن يكون أقل من 2 ميجابايت' });
+        setTimeout(() => setMessage(null), 3000);
+        return;
+      }
+
+      setLogoFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleLogoUpload = async () => {
+    if (!logoFile) return;
+
+    setIsUploading(true);
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append('logo', logoFile);
+      uploadFormData.append('logoAlt', formData.logoAlt?.value || 'شعار الموقع');
+
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/settings/upload-logo', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: uploadFormData,
+      });
+
+      if (!response.ok) {
+        throw new Error('فشل في رفع الشعار');
+      }
+
+      const result = await response.json();
+      
+      // Refresh settings
+      queryClient.invalidateQueries('settings');
+      
+      // Clear form
+      clearLogo();
+      
+      setMessage({ type: 'success', text: 'تم رفع الشعار بنجاح' });
+      setTimeout(() => setMessage(null), 3000);
+      
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      setMessage({ type: 'error', text: 'حدث خطأ في رفع الشعار' });
+      setTimeout(() => setMessage(null), 3000);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleInputChange = (key: string, value: any) => {
     setFormData((prev: any) => ({
@@ -193,6 +282,122 @@ const SettingsPage = () => {
             {activeTab === 'general' && (
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-gray-900">الإعدادات العامة</h3>
+                
+                {/* Logo Upload Section */}
+                <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                  <h4 className="text-md font-semibold text-gray-900 mb-4 flex items-center">
+                    <ImageIcon className="h-5 w-5 mr-2" />
+                    إدارة الشعار
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Current Logo Display */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        الشعار الحالي
+                      </label>
+                      <div className="border border-gray-300 rounded-lg p-4 bg-white">
+                        {settings?.logoUrl?.value ? (
+                          <div className="flex flex-col items-center">
+                            <div className="w-32 h-32 flex items-center justify-center border border-gray-200 rounded-lg bg-gray-50">
+                              <Image
+                                src={settings.logoUrl.value}
+                                alt={settings.logoAlt?.value || 'الشعار الحالي'}
+                                width={128}
+                                height={128}
+                                className="max-w-full max-h-full object-contain"
+                              />
+                            </div>
+                            <p className="text-sm text-gray-600 mt-2">الشعار الحالي</p>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-32 text-gray-400">
+                            <ImageIcon className="h-12 w-12 mb-2" />
+                            <p className="text-sm">لا يوجد شعار</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Logo Upload */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        رفع شعار جديد
+                      </label>
+                      <div className="space-y-4">
+                        {/* File Input */}
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gold-400 transition-colors">
+                          {logoPreview ? (
+                            <div className="relative">
+                              <div className="w-32 h-32 mx-auto flex items-center justify-center border border-gray-200 rounded-lg bg-gray-50">
+                                <Image
+                                  src={logoPreview}
+                                  alt="معاينة الشعار"
+                                  width={128}
+                                  height={128}
+                                  className="max-w-full max-h-full object-contain"
+                                />
+                              </div>
+                              <button
+                                onClick={clearLogo}
+                                className="absolute top-0 right-0 -mt-2 -mr-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                              <p className="text-sm text-gray-600 mt-2">معاينة الشعار الجديد</p>
+                            </div>
+                          ) : (
+                            <div>
+                              <ImageIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                              <p className="text-sm text-gray-600 mb-2">اختر ملف الشعار</p>
+                              <p className="text-xs text-gray-500">SVG, PNG, JPG (حد أقصى 2MB)</p>
+                            </div>
+                          )}
+                          
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/svg+xml,image/png,image/jpeg,image/jpg"
+                            onChange={handleLogoSelect}
+                            className="hidden"
+                          />
+                          
+                          {!logoPreview && (
+                            <button
+                              onClick={() => fileInputRef.current?.click()}
+                              className="mt-4 bg-gold-600 text-white px-4 py-2 rounded-lg hover:bg-gold-700 transition-colors"
+                            >
+                              اختيار ملف
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Upload Button */}
+                        {logoFile && (
+                          <button
+                            onClick={handleLogoUpload}
+                            disabled={isUploading}
+                            className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                          >
+                            {isUploading ? (
+                              <>
+                                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                جاري الرفع...
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="h-4 w-4 mr-2" />
+                                رفع الشعار
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Other General Settings */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -357,6 +562,24 @@ const SettingsPage = () => {
             )}
           </div>
         </div>
+
+        {/* Message Display */}
+        {message && (
+          <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+            message.type === 'success' 
+              ? 'bg-green-100 border border-green-400 text-green-700' 
+              : 'bg-red-100 border border-red-400 text-red-700'
+          }`}>
+            <div className="flex items-center">
+              {message.type === 'success' ? (
+                <CheckCircle className="h-5 w-5 mr-2" />
+              ) : (
+                <AlertCircle className="h-5 w-5 mr-2" />
+              )}
+              <span>{message.text}</span>
+            </div>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );

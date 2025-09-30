@@ -127,21 +127,37 @@ const LogoManagementPage = () => {
         formData.append('favicon', faviconFile);
       }
       
-      formData.append('logoAlt', logoAlt);
+      if (logoAlt) {
+        formData.append('logoAlt', logoAlt);
+      }
 
-      // For now, we'll simulate the upload and save the alt text
-      // In a real implementation, you'd upload to a file storage service
-      const updateData: any = {};
+      // Use the dedicated logo upload endpoint
+      const response = await fetch('/api/settings/upload-logo', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload logo');
+      }
+
+      const result = await response.json();
       
-      if (logoAlt !== settings?.logoAlt?.value) {
-        updateData.logoAlt = logoAlt;
-      }
-
-      if (Object.keys(updateData).length > 0) {
-        await updateMutation.mutateAsync(updateData);
-      } else {
-        setIsUploading(false);
-      }
+      // Invalidate queries to refresh the settings
+      queryClient.invalidateQueries('settings');
+      
+      // Clear the form
+      setLogoFile(null);
+      setFaviconFile(null);
+      setLogoPreview(null);
+      setFaviconPreview(null);
+      setIsUploading(false);
+      
+      // Show success message
+      console.log('Logo uploaded successfully:', result);
       
     } catch (error) {
       console.error('Error saving logo:', error);

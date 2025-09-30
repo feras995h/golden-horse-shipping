@@ -233,51 +233,48 @@ export class SettingsService {
     files: { logo?: Express.Multer.File[], favicon?: Express.Multer.File[] },
     body: { logoAlt?: string }
   ) {
+    const fs = require('fs');
+    const path = require('path');
     const updates: any = {};
 
-    // For now, we'll just update the alt text
-    // In a real implementation, you would:
-    // 1. Save files to a storage service (AWS S3, local storage, etc.)
-    // 2. Get the URLs of the uploaded files
-    // 3. Update the settings with the new URLs
+    // Create uploads directory if it doesn't exist
+    const uploadsDir = path.join(process.cwd(), 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
 
+    // Handle logo file upload
+    if (files.logo && files.logo[0]) {
+      const logoExtension = files.logo[0].originalname.split('.').pop();
+      const logoFilename = `logo-${Date.now()}.${logoExtension}`;
+      const logoPath = path.join(uploadsDir, logoFilename);
+      
+      // Save file to uploads directory
+      fs.writeFileSync(logoPath, files.logo[0].buffer);
+      
+      updates.logoUrl = `/uploads/${logoFilename}`;
+      this.logger.log(`Logo file saved: ${logoFilename}`);
+    }
+
+    // Handle favicon file upload
+    if (files.favicon && files.favicon[0]) {
+      const faviconExtension = files.favicon[0].originalname.split('.').pop();
+      const faviconFilename = `favicon-${Date.now()}.${faviconExtension}`;
+      const faviconPath = path.join(uploadsDir, faviconFilename);
+      
+      // Save file to uploads directory
+      fs.writeFileSync(faviconPath, files.favicon[0].buffer);
+      
+      updates.faviconUrl = `/uploads/${faviconFilename}`;
+      this.logger.log(`Favicon file saved: ${faviconFilename}`);
+    }
+
+    // Update logo alt text
     if (body.logoAlt) {
       updates.logoAlt = body.logoAlt;
     }
 
-    // Handle file uploads
-    if (files.logo && files.logo[0]) {
-      const logoExtension = files.logo[0].originalname.split('.').pop();
-      const logoFilename = `logo-${Date.now()}.${logoExtension}`;
-      updates.logoUrl = `/uploads/${logoFilename}`;
-      this.logger.log(`Logo file received: ${files.logo[0].originalname}`);
-
-      // TODO: Move file to uploads directory
-      // const fs = require('fs');
-      // const path = require('path');
-      // const uploadsDir = path.join(process.cwd(), 'uploads');
-      // if (!fs.existsSync(uploadsDir)) {
-      //   fs.mkdirSync(uploadsDir, { recursive: true });
-      // }
-      // fs.writeFileSync(path.join(uploadsDir, logoFilename), files.logo[0].buffer);
-    }
-
-    if (files.favicon && files.favicon[0]) {
-      const faviconExtension = files.favicon[0].originalname.split('.').pop();
-      const faviconFilename = `favicon-${Date.now()}.${faviconExtension}`;
-      updates.faviconUrl = `/uploads/${faviconFilename}`;
-      this.logger.log(`Favicon file received: ${files.favicon[0].originalname}`);
-
-      // TODO: Move file to uploads directory
-      // const fs = require('fs');
-      // const path = require('path');
-      // const uploadsDir = path.join(process.cwd(), 'uploads');
-      // if (!fs.existsSync(uploadsDir)) {
-      //   fs.mkdirSync(uploadsDir, { recursive: true });
-      // }
-      // fs.writeFileSync(path.join(uploadsDir, faviconFilename), files.favicon[0].buffer);
-    }
-
+    // Update settings if there are changes
     if (Object.keys(updates).length > 0) {
       await this.update(updates);
     }

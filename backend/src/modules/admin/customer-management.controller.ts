@@ -105,6 +105,7 @@ export class CustomerManagementController {
         customerEmail: { type: 'string', description: 'Customer email address' },
         customerPhone: { type: 'string', description: 'Customer phone number' },
         isActive: { type: 'boolean', description: 'Customer account status' },
+        hasPortalAccess: { type: 'boolean', description: 'Customer portal access status' },
       },
     },
   })
@@ -119,6 +120,7 @@ export class CustomerManagementController {
       customerEmail?: string;
       customerPhone?: string;
       isActive?: boolean;
+      hasPortalAccess?: boolean;
     },
     @Request() req,
   ) {

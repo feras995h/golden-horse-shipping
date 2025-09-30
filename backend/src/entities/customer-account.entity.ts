@@ -46,6 +46,10 @@ export class CustomerAccount {
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
+  @ApiProperty({ description: 'Whether the customer has portal access' })
+  @Column({ name: 'has_portal_access', default: true })
+  hasPortalAccess: boolean;
+
   @ApiProperty({ description: 'Last login timestamp' })
   @Column({ name: 'last_login', nullable: true })
   lastLogin: Date;

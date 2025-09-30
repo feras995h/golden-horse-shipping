@@ -28,7 +28,7 @@ export class CustomerAuthService {
 
   async validateCustomer(trackingNumber: string, password: string): Promise<any> {
     const customerAccount = await this.customerAccountRepository.findOne({
-      where: { trackingNumber, isActive: true },
+      where: { trackingNumber, isActive: true, hasPortalAccess: true },
       relations: ['shipments'],
     });
 
@@ -41,7 +41,7 @@ export class CustomerAuthService {
 
   async validateCustomerByNumber(customerNumber: string, password: string): Promise<any> {
     const customerAccount = await this.customerAccountRepository.findOne({
-      where: { customerNumber, isActive: true },
+      where: { customerNumber, isActive: true, hasPortalAccess: true },
       relations: ['shipments'],
     });
 
@@ -205,6 +205,7 @@ export class CustomerAuthService {
       customerEmail: createDto.customerEmail,
       customerPhone: createDto.customerPhone,
       notes: createDto.notes,
+      hasPortalAccess: true, // Enable portal access by default for new customers
     });
 
     const savedAccount = await this.customerAccountRepository.save(customerAccount);

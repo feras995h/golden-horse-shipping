@@ -18,6 +18,21 @@ export class CustomerManagementService {
   async getAllCustomers(page: number = 1, limit: number = 20, search?: string, status?: string) {
     const queryBuilder = this.customerAccountRepository.createQueryBuilder('customer');
 
+    // Select specific fields including hasPortalAccess
+    queryBuilder.select([
+      'customer.id',
+      'customer.trackingNumber',
+      'customer.customerNumber',
+      'customer.customerName',
+      'customer.customerEmail',
+      'customer.customerPhone',
+      'customer.isActive',
+      'customer.hasPortalAccess',
+      'customer.createdAt',
+      'customer.updatedAt',
+      'customer.lastLogin'
+    ]);
+
     // Apply search filter
     if (search) {
       queryBuilder.where(
@@ -55,7 +70,6 @@ export class CustomerManagementService {
         return {
           ...customer,
           shipmentCount,
-          passwordHash: undefined, // Don't expose password hash
         };
       })
     );
@@ -75,6 +89,19 @@ export class CustomerManagementService {
     const customer = await this.customerAccountRepository.findOne({
       where: { id: customerId },
       relations: ['shipments'],
+      select: [
+        'id',
+        'trackingNumber',
+        'customerNumber',
+        'customerName',
+        'customerEmail',
+        'customerPhone',
+        'isActive',
+        'hasPortalAccess',
+        'createdAt',
+        'updatedAt',
+        'lastLogin'
+      ],
     });
 
     if (!customer) {
@@ -94,7 +121,6 @@ export class CustomerManagementService {
 
     return {
       ...customer,
-      passwordHash: undefined, // Don't expose password hash
       statistics: {
         totalShipments: shipmentCount,
         activeShipments: activeShipmentCount,
@@ -162,6 +188,7 @@ export class CustomerManagementService {
       customerEmail: createCustomerDto.customerEmail,
       customerPhone: createCustomerDto.customerPhone || '',
       isActive: true,
+      hasPortalAccess: true, // Enable portal access by default for new customers
       directAccessToken: null,
       tokenExpiresAt: null,
       lastLogin: null,
@@ -189,6 +216,7 @@ export class CustomerManagementService {
       customerEmail?: string;
       customerPhone?: string;
       isActive?: boolean;
+      hasPortalAccess?: boolean;
     },
     adminId: string,
   ) {
@@ -212,6 +240,9 @@ export class CustomerManagementService {
     }
     if (updateCustomerDto.isActive !== undefined) {
       customer.isActive = updateCustomerDto.isActive;
+    }
+    if (updateCustomerDto.hasPortalAccess !== undefined) {
+      customer.hasPortalAccess = updateCustomerDto.hasPortalAccess;
     }
 
     const updatedCustomer = await this.customerAccountRepository.save(customer);

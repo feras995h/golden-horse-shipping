@@ -133,8 +133,21 @@ export class ClientsService {
 
     const [clients, total] = await queryBuilder.getManyAndCount();
 
+    // Add shipments count for each client
+    const clientsWithShipmentsCount = await Promise.all(
+      clients.map(async (client) => {
+        const shipmentsCount = await this.shipmentRepository.count({
+          where: { clientId: client.id },
+        });
+        return {
+          ...client,
+          shipmentsCount,
+        };
+      })
+    );
+
     return {
-      clients,
+      clients: clientsWithShipmentsCount,
       total,
       page: pageNum,
       totalPages: Math.ceil(total / limitNum),
@@ -465,6 +478,30 @@ export class ClientsService {
     });
 
     return this.findOne(clientId);
+  }
+
+  async resetPassword(clientId: string): Promise<{ message: string; newPassword: string }> {
+    const client = await this.findOne(clientId);
+
+    if (!client.hasPortalAccess) {
+      throw new ConflictException('Client does not have portal access');
+    }
+
+    // Generate a new random password
+    const newPassword = Math.random().toString(36).slice(-8);
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(newPassword, saltRounds);
+
+    await this.clientRepository.update(clientId, {
+      passwordHash,
+    });
+
+    // In a real application, you would send this password via email or SMS
+    // For now, we return it in the response
+    return {
+      message: 'Password reset successfully',
+      newPassword: newPassword,
+    };
   }
 
   async getClientByTrackingNumber(trackingNumber: string): Promise<Client | null> {

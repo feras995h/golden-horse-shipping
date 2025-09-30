@@ -141,6 +141,15 @@ export class ClientsController {
     return this.clientsService.changePassword(id, body.password);
   }
 
+  @Post(':id/reset-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Reset client portal password' })
+  @ApiResponse({ status: 200, description: 'Password reset successfully' })
+  resetPassword(@Param('id') id: string) {
+    return this.clientsService.resetPassword(id);
+  }
+
   @Get('tracking/:trackingNumber')
   @ApiOperation({ summary: 'Get client by tracking number' })
   @ApiResponse({ status: 200, description: 'Client found' })

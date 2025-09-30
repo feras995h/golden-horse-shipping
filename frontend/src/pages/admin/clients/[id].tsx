@@ -23,13 +23,17 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Key
+  Key,
+  Shield,
+  RefreshCw
 } from 'lucide-react';
 
 const ClientDetailsPage = () => {
   const { t } = useTranslation('common');
   const router = useRouter();
   const { id } = router.query;
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [resetPasswordMessage, setResetPasswordMessage] = useState('');
 
   // Fetch client details
   const { data: client, isLoading: clientLoading } = useQuery(
@@ -49,7 +53,7 @@ const ClientDetailsPage = () => {
     ['client-shipments', id],
     async () => {
       if (!id) return null;
-      const response = await shipmentsAPI.getAll({ clientId: id as string, limit: 10 });
+      const response = await clientsAPI.getClientShipments(id as string);
       return response.data;
     },
     {
@@ -82,6 +86,22 @@ const ClientDetailsPage = () => {
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!id) return;
+    
+    setIsResettingPassword(true);
+    setResetPasswordMessage('');
+    
+    try {
+      const response = await clientsAPI.resetPassword(id as string);
+      setResetPasswordMessage('تم إعادة تعيين كلمة المرور بنجاح. تم إرسال كلمة المرور الجديدة للعميل.');
+    } catch (error) {
+      setResetPasswordMessage('حدث خطأ أثناء إعادة تعيين كلمة المرور. يرجى المحاولة مرة أخرى.');
+    } finally {
+      setIsResettingPassword(false);
     }
   };
 
@@ -263,9 +283,9 @@ const ClientDetailsPage = () => {
                     </div>
                   ))}
                 </div>
-              ) : shipmentsData?.items?.length > 0 ? (
+              ) : shipmentsData?.length > 0 ? (
                 <div className="space-y-4">
-                  {shipmentsData.items.slice(0, 5).map((shipment: any) => (
+                  {shipmentsData.slice(0, 5).map((shipment: any) => (
                     <div key={shipment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                       <div className="flex-1">
                         <Link
@@ -330,6 +350,56 @@ const ClientDetailsPage = () => {
                     {new Date(client.createdAt).toLocaleDateString('ar-SA')}
                   </span>
                 </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">البوابة الإلكترونية</span>
+                  <span className={`flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                    client.hasPortalAccess 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {client.hasPortalAccess ? (
+                      <>
+                        <Shield className="h-3 w-3 mr-1" />
+                        مفعلة
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-3 w-3 mr-1" />
+                        غير مفعلة
+                      </>
+                    )}
+                  </span>
+                </div>
+                {client.hasPortalAccess && (
+                  <div className="pt-3 border-t border-gray-200">
+                    <button
+                      onClick={handleResetPassword}
+                      disabled={isResettingPassword}
+                      className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isResettingPassword ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          جاري إعادة التعيين...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          إعادة تعيين كلمة المرور
+                        </>
+                      )}
+                    </button>
+                    {resetPasswordMessage && (
+                      <div className={`mt-2 p-2 rounded text-sm ${
+                        resetPasswordMessage.includes('بنجاح') 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {resetPasswordMessage}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -343,7 +413,7 @@ const ClientDetailsPage = () => {
                     <span className="text-gray-600">إجمالي الشحنات</span>
                   </div>
                   <span className="font-semibold text-gray-900">
-                    {shipmentsData?.total || 0}
+                    {shipmentsData?.length || 0}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -352,7 +422,7 @@ const ClientDetailsPage = () => {
                     <span className="text-gray-600">الشحنات النشطة</span>
                   </div>
                   <span className="font-semibold text-gray-900">
-                    {shipmentsData?.items?.filter((s: any) => 
+                    {shipmentsData?.filter((s: any) => 
                       ['pending', 'processing', 'shipped', 'in_transit'].includes(s.status)
                     ).length || 0}
                   </span>
@@ -363,7 +433,7 @@ const ClientDetailsPage = () => {
                     <span className="text-gray-600">الشحنات المكتملة</span>
                   </div>
                   <span className="font-semibold text-gray-900">
-                    {shipmentsData?.items?.filter((s: any) => s.status === 'delivered').length || 0}
+                    {shipmentsData?.filter((s: any) => s.status === 'delivered').length || 0}
                   </span>
                 </div>
               </div>

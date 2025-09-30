@@ -41,8 +41,8 @@ services:
     container_name: golden-horse-frontend
     environment:
       NODE_ENV: production
-      # The frontend talks to backend via internal service DNS
-      NEXT_PUBLIC_API_URL: http://backend:3001/api
+      # The frontend talks to backend via reverse proxy
+      NEXT_PUBLIC_API_URL: /api
     depends_on:
       - backend
     expose:

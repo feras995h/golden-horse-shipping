@@ -7,11 +7,13 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=${NODE_ENV:-production}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
       - DATABASE_URL=${DATABASE_URL}
       - PORT=3000
+      - FRONTEND_PORT=3000
+      - BACKEND_PORT=3001
       - FRONTEND_URL=${FRONTEND_URL}
       - SHIPSGO_API_KEY=${SHIPSGO_API_KEY}
       - REDIS_URL=${REDIS_URL}

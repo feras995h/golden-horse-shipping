@@ -67,6 +67,8 @@ RUN mkdir -p /app/uploads && chown -R nextjs:nodejs /app/uploads
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV FRONTEND_PORT=3000
+ENV BACKEND_PORT=3001
 ENV HOSTNAME="0.0.0.0"
 ENV DATABASE_URL=postgres://postgres:A93zhpdV6icewK6rxbBQRScmxZvyWAhjvXg2QJApIKzU0gVx8CzubNgvo2O97n1l@72.60.92.146:5433/postgres
 
@@ -80,6 +82,10 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3000/api/health || exit 1
 
+# Copy startup script
+COPY --chown=nextjs:nodejs start.sh ./start.sh
+RUN chmod +x ./start.sh
+
 # Start the application with dumb-init
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "backend/dist/main.js"]
+CMD ["./start.sh"]

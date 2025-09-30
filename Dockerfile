@@ -60,9 +60,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/frontend/.next ./frontend/.next
 COPY --from=builder --chown=nextjs:nodejs /app/frontend/package.json ./frontend/
 COPY --from=builder --chown=nextjs:nodejs /app/frontend/public ./frontend/public
 COPY --from=builder --chown=nextjs:nodejs /app/frontend/next.config.js ./frontend/
+COPY --from=builder --chown=nextjs:nodejs /app/frontend/next-i18next.config.js ./frontend/
 
-# Create uploads directory with proper permissions
-RUN mkdir -p /app/uploads && chown -R nextjs:nodejs /app/uploads
+# Create uploads directories with proper permissions
+RUN mkdir -p /app/uploads /app/backend/uploads && \
+    chown -R nextjs:nodejs /app/uploads /app/backend/uploads
 
 # Set environment variables
 ENV NODE_ENV=production

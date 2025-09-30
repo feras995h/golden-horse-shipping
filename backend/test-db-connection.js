@@ -1,9 +1,14 @@
 #!/usr/bin/env node
 
 const { DataSource } = require('typeorm');
-require('dotenv').config();
+console.log('CWD:', process.cwd());
+console.log('__dirname:', __dirname);
+
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 
 console.log('🔍 Testing database connection...');
+console.log('DATABASE_URL loaded:', process.env.DATABASE_URL ? 'YES' : 'NO');
+console.log('isPg logic result:', !!process.env.DATABASE_URL || !!process.env.DB_HOST || process.env.DB_TYPE === 'postgres');
 
 const databaseUrl = process.env.DATABASE_URL;
 const isPg = !!databaseUrl || !!process.env.DB_HOST || process.env.DB_TYPE === 'postgres';

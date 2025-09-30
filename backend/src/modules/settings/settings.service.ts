@@ -15,7 +15,7 @@ export class SettingsService {
     @InjectRepository(Setting)
     private settingRepository: Repository<Setting>,
   ) {
-    this.initializeDefaultSettings();
+    // Don't initialize settings in constructor to prevent blocking
   }
 
   async findAll() {

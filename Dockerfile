@@ -64,9 +64,28 @@ COPY --from=builder --chown=nextjs:nodejs /app/frontend/next.config.js ./fronten
 # Create uploads directory with proper permissions
 RUN mkdir -p /app/uploads && chown -R nextjs:nodejs /app/uploads
 
-# Copy startup script and set permissions before switching user
-COPY start.sh ./start.sh
-RUN chmod +x ./start.sh && chown nextjs:nodejs ./start.sh
+# Create startup script inline
+RUN echo '#!/bin/bash\n\
+echo "Starting Golden Horse Shipping Application..."\n\
+echo "Starting Backend on port ${BACKEND_PORT:-3001}..."\n\
+cd /app/backend && PORT=${BACKEND_PORT:-3001} node dist/main.js &\n\
+BACKEND_PID=$!\n\
+sleep 5\n\
+echo "Starting Frontend on port ${FRONTEND_PORT:-3000}..."\n\
+cd /app/frontend && PORT=${FRONTEND_PORT:-3000} npm start &\n\
+FRONTEND_PID=$!\n\
+shutdown() {\n\
+    echo "Shutting down services..."\n\
+    kill $BACKEND_PID $FRONTEND_PID 2>/dev/null\n\
+    wait $BACKEND_PID $FRONTEND_PID 2>/dev/null\n\
+    exit 0\n\
+}\n\
+trap shutdown SIGTERM SIGINT\n\
+echo "Both services started successfully!"\n\
+echo "Frontend: http://localhost:${FRONTEND_PORT:-3000}"\n\
+echo "Backend API: http://localhost:${BACKEND_PORT:-3001}/api"\n\
+wait $BACKEND_PID $FRONTEND_PID' > /app/start.sh && \
+    chmod +x /app/start.sh && chown nextjs:nodejs /app/start.sh
 
 # Set environment variables
 ENV NODE_ENV=production
@@ -84,8 +103,8 @@ EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/api/health || exit 1
+    CMD node -e "const http = require('http'); const options = { hostname: 'localhost', port: process.env.BACKEND_PORT || 3001, path: '/api/health', timeout: 5000 }; const req = http.request(options, (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }); req.on('error', () => process.exit(1)); req.end();"
 
-# Start the application with dumb-init
+# Set entrypoint and command
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["./start.sh"]

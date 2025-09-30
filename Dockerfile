@@ -64,6 +64,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/frontend/next.config.js ./fronten
 # Create uploads directory with proper permissions
 RUN mkdir -p /app/uploads && chown -R nextjs:nodejs /app/uploads
 
+# Copy startup script and set permissions before switching user
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh && chown nextjs:nodejs ./start.sh
+
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
@@ -81,10 +85,6 @@ EXPOSE 3000
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3000/api/health || exit 1
-
-# Copy startup script
-COPY --chown=nextjs:nodejs start.sh ./start.sh
-RUN chmod +x ./start.sh
 
 # Start the application with dumb-init
 ENTRYPOINT ["dumb-init", "--"]

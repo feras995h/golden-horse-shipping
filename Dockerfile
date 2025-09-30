@@ -64,29 +64,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/frontend/next.config.js ./fronten
 # Create uploads directory with proper permissions
 RUN mkdir -p /app/uploads && chown -R nextjs:nodejs /app/uploads
 
-# Create startup script inline
-RUN echo '#!/bin/bash\n\
-echo "Starting Golden Horse Shipping Application..."\n\
-echo "Starting Backend on port ${BACKEND_PORT:-3001}..."\n\
-cd /app/backend && PORT=${BACKEND_PORT:-3001} node dist/main.js &\n\
-BACKEND_PID=$!\n\
-sleep 5\n\
-echo "Starting Frontend on port ${FRONTEND_PORT:-3000}..."\n\
-cd /app/frontend && PORT=${FRONTEND_PORT:-3000} npm start &\n\
-FRONTEND_PID=$!\n\
-shutdown() {\n\
-    echo "Shutting down services..."\n\
-    kill $BACKEND_PID $FRONTEND_PID 2>/dev/null\n\
-    wait $BACKEND_PID $FRONTEND_PID 2>/dev/null\n\
-    exit 0\n\
-}\n\
-trap shutdown SIGTERM SIGINT\n\
-echo "Both services started successfully!"\n\
-echo "Frontend: http://localhost:${FRONTEND_PORT:-3000}"\n\
-echo "Backend API: http://localhost:${BACKEND_PORT:-3001}/api"\n\
-wait $BACKEND_PID $FRONTEND_PID' > /app/start.sh && \
-    chmod +x /app/start.sh && chown nextjs:nodejs /app/start.sh
-
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
@@ -105,6 +82,6 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD node -e "const http = require('http'); const options = { hostname: 'localhost', port: process.env.BACKEND_PORT || 3001, path: '/api/health', timeout: 5000 }; const req = http.request(options, (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }); req.on('error', () => process.exit(1)); req.end();"
 
-# Set entrypoint and command
+# Set entrypoint and command - run both services directly
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["/app/start.sh"]
+CMD ["sh", "-c", "echo 'Starting Golden Horse Shipping Application...' && echo 'Starting Backend on port ${BACKEND_PORT:-3001}...' && cd /app/backend && PORT=${BACKEND_PORT:-3001} node dist/main.js & BACKEND_PID=$! && sleep 5 && echo 'Starting Frontend on port ${FRONTEND_PORT:-3000}...' && cd /app/frontend && PORT=${FRONTEND_PORT:-3000} npm start & FRONTEND_PID=$! && echo 'Both services started successfully!' && echo 'Frontend: http://localhost:${FRONTEND_PORT:-3000}' && echo 'Backend API: http://localhost:${BACKEND_PORT:-3001}/api' && trap 'echo Shutting down services...; kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; wait $BACKEND_PID $FRONTEND_PID 2>/dev/null; exit 0' SIGTERM SIGINT && wait $BACKEND_PID $FRONTEND_PID"]

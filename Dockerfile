@@ -107,4 +107,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 # Set entrypoint and command
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["./start.sh"]
+CMD ["/app/start.sh"]

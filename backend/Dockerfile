@@ -45,7 +45,7 @@ USER nestjs
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3001
-ENV JWT_SECRET=your-super-secret-jwt-key-change-in-production-2024
+ENV JWT_SECRET=cc551c5e5110b8aee35898a7fa3ec0269d38e01849d711a9798ec61b154009a7dddcc71709725ee258c43f2e1678c3638534137a96211900425348409bfb1789
 ENV JWT_EXPIRES_IN=7d
 ENV DATABASE_URL=postgresql://postgres:Feras123@ep-weathered-darkness-a5ixqhzr.us-east-2.aws.neon.tech:5433/neondb?sslmode=require
 

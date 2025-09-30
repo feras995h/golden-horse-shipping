@@ -42,6 +42,13 @@ RUN mkdir -p uploads && chown -R nestjs:nodejs uploads
 # Switch to non-root user
 USER nestjs
 
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3001
+ENV JWT_SECRET=your-super-secret-jwt-key-change-in-production-2024
+ENV JWT_EXPIRES_IN=7d
+ENV DATABASE_URL=postgresql://postgres:Feras123@ep-weathered-darkness-a5ixqhzr.us-east-2.aws.neon.tech:5433/neondb?sslmode=require
+
 # Expose port
 EXPOSE 3001
 

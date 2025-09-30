@@ -6,3 +6,6 @@ deploy:
   healthcheckPath: "/api/health"
 environment:
   NODE_ENV: "production"
+  JWT_SECRET: "your-super-secret-jwt-key-change-in-production-2024"
+  JWT_EXPIRES_IN: "7d"
+  DATABASE_URL: "postgresql://postgres:Feras123@ep-weathered-darkness-a5ixqhzr.us-east-2.aws.neon.tech:5433/neondb?sslmode=require"

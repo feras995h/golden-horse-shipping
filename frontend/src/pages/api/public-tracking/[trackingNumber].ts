@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { trackingNumber } = req.query;

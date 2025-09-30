@@ -132,6 +132,7 @@ const AdminLoginPage = () => {
                     required
                     value={formData.password}
                     onChange={handleInputChange}
+                    autoComplete="current-password"
                     className="input-field pr-10 pl-10"
                     placeholder="أدخل كلمة المرور"
                     disabled={isSubmitting}

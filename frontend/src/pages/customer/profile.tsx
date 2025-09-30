@@ -494,7 +494,8 @@ const CustomerProfile = () => {
                         name="currentPassword"
                         value={passwordForm.currentPassword}
                         onChange={handlePasswordChange}
-                        className={`w-full px-4 py-3 pr-12 bg-gradient-to-r from-gray-50 to-gray-100 border-2 ${passwordErrors.currentPassword ? 'border-red-300' : 'border-gray-200'} rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 font-medium`}
+                        autoComplete="current-password"
+                        className={`w-full px-4 py-3 pr-12 bg-gradient-to-r from-gray-50 to-gray-100 border-2 ${passwordErrors.currentPassword ? 'border-red-300' : 'border-gray-200'} rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200`}
                         placeholder="أدخل كلمة المرور الحالية"
                       />
                       <button
@@ -521,7 +522,8 @@ const CustomerProfile = () => {
                         name="newPassword"
                         value={passwordForm.newPassword}
                         onChange={handlePasswordChange}
-                        className={`w-full px-4 py-3 pr-12 bg-gradient-to-r from-gray-50 to-gray-100 border-2 ${passwordErrors.newPassword ? 'border-red-300' : 'border-gray-200'} rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 font-medium`}
+                        autoComplete="new-password"
+                        className={`w-full px-4 py-3 pr-12 bg-gradient-to-r from-gray-50 to-gray-100 border-2 ${passwordErrors.newPassword ? 'border-red-300' : 'border-gray-200'} rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200`}
                         placeholder="أدخل كلمة المرور الجديدة"
                       />
                       <button
@@ -551,7 +553,8 @@ const CustomerProfile = () => {
                         name="confirmPassword"
                         value={passwordForm.confirmPassword}
                         onChange={handlePasswordChange}
-                        className={`w-full px-4 py-3 pr-12 bg-gradient-to-r from-gray-50 to-gray-100 border-2 ${passwordErrors.confirmPassword ? 'border-red-300' : 'border-gray-200'} rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 font-medium`}
+                        autoComplete="new-password"
+                        className={`w-full px-4 py-3 pr-12 bg-gradient-to-r from-gray-50 to-gray-100 border-2 ${passwordErrors.confirmPassword ? 'border-red-300' : 'border-gray-200'} rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200`}
                         placeholder="أعد إدخال كلمة المرور الجديدة"
                       />
                       <button

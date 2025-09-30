@@ -83,7 +83,7 @@ async function bootstrap() {
       console.log('✅ Swagger documentation configured');
     }
 
-    const port = process.env.PORT || 3000;
+    const port = process.env.PORT || 3001;
     const host = '0.0.0.0'; // Bind to all interfaces for Docker compatibility
     
     console.log(`🌐 Attempting to bind to ${host}:${port}...`);

@@ -38,8 +38,60 @@ print_header() {
 
 print_header "🚀 Golden Horse Shipping - VPS Deployment"
 
-# Step 1: System Information
-print_status "📊 Checking system information..."
+# Step 1: Pre-deployment Resource Check
+print_header "🔍 Pre-deployment Resource Check"
+print_status "📊 Checking system resources and potential conflicts..."
+
+# Check memory usage
+TOTAL_MEM=$(free -m | grep Mem | awk '{print $2}')
+USED_MEM=$(free -m | grep Mem | awk '{print $3}')
+MEM_PERCENT=$((USED_MEM * 100 / TOTAL_MEM))
+
+print_status "Memory usage: $MEM_PERCENT% ($USED_MEM MB / $TOTAL_MEM MB)"
+
+if [ $MEM_PERCENT -gt 85 ]; then
+    print_error "Memory usage is critically high ($MEM_PERCENT%)!"
+    print_warning "Consider stopping other services before deployment"
+    read -p "Continue anyway? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        exit 1
+    fi
+elif [ $MEM_PERCENT -gt 70 ]; then
+    print_warning "Memory usage is high ($MEM_PERCENT%). Deployment may be slower."
+fi
+
+# Check disk space
+DISK_PERCENT=$(df / | tail -1 | awk '{print $5}' | sed 's/%//')
+print_status "Disk usage: $DISK_PERCENT%"
+
+if [ $DISK_PERCENT -gt 90 ]; then
+    print_error "Disk space is critically low ($DISK_PERCENT%)!"
+    print_warning "Free up space before deployment"
+    exit 1
+elif [ $DISK_PERCENT -gt 80 ]; then
+    print_warning "Disk space is low ($DISK_PERCENT%). Consider cleanup."
+fi
+
+# Check for port conflicts
+print_status "Checking for port conflicts..."
+CONFLICTS=()
+for port in 80 3000 3001 5432; do
+    if netstat -tlnp 2>/dev/null | grep ":$port " > /dev/null; then
+        process=$(netstat -tlnp 2>/dev/null | grep ":$port " | awk '{print $7}' | head -1)
+        CONFLICTS+=("Port $port: $process")
+    fi
+done
+
+if [ ${#CONFLICTS[@]} -gt 0 ]; then
+    print_warning "Found potential port conflicts:"
+    for conflict in "${CONFLICTS[@]}"; do
+        echo "  - $conflict"
+    done
+    print_status "These will be handled during deployment..."
+fi
+
+# System Information
 echo "Date: $(date)"
 echo "User: $(whoami)"
 echo "OS: $(uname -a)"
@@ -141,15 +193,53 @@ EOF
 
 print_success "Environment files created successfully"
 
-# Step 5: Docker cleanup
-print_header "🧹 Docker Cleanup"
-print_status "Stopping existing containers..."
+# Step 5: Smart Docker cleanup with conflict resolution
+print_header "🧹 Smart Docker Cleanup and Conflict Resolution"
+
+# Stop any conflicting services first
+print_status "Checking for conflicting services..."
+
+# Check if Nginx is running outside Docker
+if systemctl is-active nginx > /dev/null 2>&1 || service nginx status > /dev/null 2>&1; then
+    print_warning "System Nginx is running. Stopping it temporarily..."
+    systemctl stop nginx 2>/dev/null || service nginx stop 2>/dev/null || true
+fi
+
+# Check if Apache is running
+if systemctl is-active apache2 > /dev/null 2>&1 || systemctl is-active httpd > /dev/null 2>&1; then
+    print_warning "Apache is running. Stopping it temporarily..."
+    systemctl stop apache2 2>/dev/null || systemctl stop httpd 2>/dev/null || true
+fi
+
+# Check for other applications on our ports
+for port in 3000 3001; do
+    PID=$(lsof -ti:$port 2>/dev/null || true)
+    if [ ! -z "$PID" ]; then
+        print_warning "Process $PID is using port $port. Attempting to stop..."
+        kill -TERM $PID 2>/dev/null || true
+        sleep 2
+        # Force kill if still running
+        if kill -0 $PID 2>/dev/null; then
+            print_warning "Force killing process $PID on port $port"
+            kill -KILL $PID 2>/dev/null || true
+        fi
+    fi
+done
+
+print_status "Stopping existing Golden Horse containers..."
 docker-compose -f docker-compose.prod.yml down --remove-orphans || true
+
+# Stop any containers that might conflict
+print_status "Stopping potentially conflicting containers..."
+docker stop $(docker ps -q --filter "publish=80" --filter "publish=3000" --filter "publish=3001" --filter "publish=5432") 2>/dev/null || true
 
 print_status "Removing unused Docker resources..."
 docker system prune -f
 docker volume prune -f
 docker network prune -f
+
+# Clean up any orphaned networks
+docker network rm golden-horse-network 2>/dev/null || true
 
 print_success "Docker cleanup completed"
 

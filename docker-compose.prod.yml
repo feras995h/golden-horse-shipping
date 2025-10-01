@@ -35,6 +35,7 @@ services:
       JWT_EXPIRES_IN: 24h
       NEXT_PUBLIC_API_URL: /api
       CORS_ORIGIN: http://72.60.92.146,https://72.60.92.146,http://localhost:3000
+      FRONTEND_URL: http://72.60.92.146
       DB_SYNCHRONIZE: false
       DB_LOGGING: false
       SHIPSGO_API_URL: https://api.shipsgo.com
@@ -111,32 +112,6 @@ volumes:
     driver: local
   backend_uploads:
     driver: local
-
-networks:
-  golden-horse-network:
-    driver: bridge
-      - golden-horse-network
-    restart: unless-stopped
-
-  reverse-proxy:
-    image: nginx:alpine
-    container_name: golden-horse-proxy
-    volumes:
-      - ./infra/nginx.conf:/etc/nginx/nginx.conf:ro
-    ports:
-      - "80:80"
-      # TLS to be added later when domain is ready
-      # - "443:443"
-    depends_on:
-      - frontend
-      - backend
-    networks:
-      - golden-horse-network
-    restart: unless-stopped
-
-volumes:
-  postgres_data:
-  backend_uploads:
 
 networks:
   golden-horse-network:

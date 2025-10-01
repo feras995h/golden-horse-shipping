@@ -109,6 +109,7 @@ const AdminLoginPage = () => {
                     required
                     value={formData.username}
                     onChange={handleInputChange}
+                    autoComplete="username"
                     className="input-field pr-10"
                     placeholder="أدخل اسم المستخدم"
                     disabled={isSubmitting}

@@ -80,9 +80,9 @@ USER nextjs
 # Expose port
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD node -e "const http = require('http'); const options = { hostname: 'localhost', port: process.env.BACKEND_PORT || 3001, path: '/api/health', timeout: 5000 }; const req = http.request(options, (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }); req.on('error', () => process.exit(1)); req.end();"
+# Health check - using curl which is already installed in the alpine image
+HEALTHCHECK --interval=30s --timeout=15s --start-period=60s --retries=5 \
+    CMD curl -f http://localhost:${BACKEND_PORT:-3001}/api/health || exit 1
 
 # Set entrypoint and command - run both services directly
 ENTRYPOINT ["dumb-init", "--"]

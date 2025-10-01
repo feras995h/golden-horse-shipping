@@ -1,14 +1,141 @@
 version: '3.8'
 
 services:
+  # PostgreSQL Database Service
+  postgres:
+    image: postgres:15-alpine
+    container_name: golden-horse-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-golden_horse_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-GoldenHorse2024!}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - golden-horse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-golden_horse_db}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - full-stack
+      - production
+
+  # Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: golden-horse-backend
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${BACKEND_PORT:-3001}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-GoldenHorse2024!}@postgres:5432/${POSTGRES_DB:-golden_horse_db}}
+      JWT_SECRET: ${JWT_SECRET:-GoldenHorse-JWT-Secret-Key-2024-Production-Change-This}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000,http://72.60.92.146,https://72.60.92.146}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      DB_SYNCHRONIZE: ${DB_SYNCHRONIZE:-false}
+      DB_LOGGING: ${DB_LOGGING:-false}
+      SHIPSGO_API_URL: ${SHIPSGO_API_URL:-https://api.shipsgo.com}
+      SHIPSGO_API_KEY: ${SHIPSGO_API_KEY:-your-shipsgo-api-key-here}
+      SHIPSGO_USERNAME: ${SHIPSGO_USERNAME:-your-shipsgo-username}
+      SHIPSGO_PASSWORD: ${SHIPSGO_PASSWORD:-your-shipsgo-password}
+      APP_NAME: ${APP_NAME:-Golden Horse Shipping}
+      APP_VERSION: ${APP_VERSION:-1.0.0}
+      DEFAULT_LANGUAGE: ${DEFAULT_LANGUAGE:-ar}
+    volumes:
+      - backend_uploads:/app/uploads
+    ports:
+      - "${BACKEND_PORT:-3001}:${BACKEND_PORT:-3001}"
+    networks:
+      - golden-horse-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: false
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${BACKEND_PORT:-3001}/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - full-stack
+      - production
+      - backend-only
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: golden-horse-frontend
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-Golden Horse Shipping}
+      NEXT_PUBLIC_APP_VERSION: ${NEXT_PUBLIC_APP_VERSION:-1.0.0}
+      NEXT_PUBLIC_DEFAULT_LANGUAGE: ${NEXT_PUBLIC_DEFAULT_LANGUAGE:-ar}
+      NEXT_PUBLIC_VPS_URL: ${NEXT_PUBLIC_VPS_URL:-http://localhost}
+      NEXT_TELEMETRY_DISABLED: ${NEXT_TELEMETRY_DISABLED:-1}
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    networks:
+      - golden-horse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - full-stack
+      - production
+      - frontend-only
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: golden-horse-nginx
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./infra/nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - golden-horse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - full-stack
+      - production
+
+  # Single App Service (for simple deployments like Coolify)
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: golden-horse-app
     environment:
-      NODE_ENV: production
-      PORT: 3000
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${PORT:-3000}
       DATABASE_URL: ${DATABASE_URL}
       # Fallback individual variables
       DB_TYPE: postgres
@@ -19,22 +146,40 @@ services:
       DB_NAME: ${DB_NAME}
       DB_SSL: ${DB_SSL:-true}
       DB_SSL_REJECT_UNAUTHORIZED: ${DB_SSL_REJECT_UNAUTHORIZED:-false}
-      DB_SYNCHRONIZE: false
+      DB_SYNCHRONIZE: ${DB_SYNCHRONIZE:-false}
       JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRES_IN: 7d
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       FRONTEND_URL: ${FRONTEND_URL}
       UPLOAD_PATH: /app/uploads
       SHIPSGO_API_KEY: ${SHIPSGO_API_KEY}
+      REDIS_URL: ${REDIS_URL}
+      FRONTEND_PORT: ${FRONTEND_PORT:-3000}
+      BACKEND_PORT: ${BACKEND_PORT:-3001}
     volumes:
       - app_uploads:/app/uploads
     ports:
-      - "3000:3000"
+      - "${PORT:-3000}:${PORT:-3000}"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT:-3000}/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
+    profiles:
+      - single-app
+      - coolify
 
 volumes:
+  postgres_data:
+    driver: local
+  backend_uploads:
+    driver: local
   app_uploads:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  golden-horse-network:
+    driver: bridge

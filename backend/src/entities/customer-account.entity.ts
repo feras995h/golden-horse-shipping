@@ -43,11 +43,27 @@ export class CustomerAccount {
   customerPhone: string;
 
   @ApiProperty({ description: 'Whether the account is active' })
-  @Column({ name: 'is_active', default: true })
+  @Column({ 
+    name: 'is_active', 
+    type: 'integer',
+    default: 1,
+    transformer: {
+      to: (value: boolean) => value ? 1 : 0,
+      from: (value: number) => Boolean(value)
+    }
+  })
   isActive: boolean;
 
   @ApiProperty({ description: 'Whether the customer has portal access' })
-  @Column({ name: 'has_portal_access', default: true })
+  @Column({ 
+    name: 'has_portal_access', 
+    type: 'integer',
+    default: 1,
+    transformer: {
+      to: (value: boolean) => value ? 1 : 0,
+      from: (value: number) => Boolean(value)
+    }
+  })
   hasPortalAccess: boolean;
 
   @ApiProperty({ description: 'Last login timestamp' })

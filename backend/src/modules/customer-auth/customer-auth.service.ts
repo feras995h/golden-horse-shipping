@@ -27,12 +27,17 @@ export class CustomerAuthService {
   ) {}
 
   async validateCustomer(trackingNumber: string, password: string): Promise<any> {
+    // First find customer without boolean conditions
     const customerAccount = await this.customerAccountRepository.findOne({
-      where: { trackingNumber, isActive: true, hasPortalAccess: true },
+      where: { trackingNumber },
       relations: ['shipments'],
     });
 
-    if (customerAccount && (await bcrypt.compare(password, customerAccount.passwordHash))) {
+    // Check if customer exists and has the right permissions
+    if (customerAccount && 
+        customerAccount.isActive && 
+        customerAccount.hasPortalAccess && 
+        (await bcrypt.compare(password, customerAccount.passwordHash))) {
       const { passwordHash, ...result } = customerAccount;
       return result;
     }
@@ -40,12 +45,17 @@ export class CustomerAuthService {
   }
 
   async validateCustomerByNumber(customerNumber: string, password: string): Promise<any> {
+    // First find customer without boolean conditions
     const customerAccount = await this.customerAccountRepository.findOne({
-      where: { customerNumber, isActive: true, hasPortalAccess: true },
+      where: { customerNumber },
       relations: ['shipments'],
     });
 
-    if (customerAccount && (await bcrypt.compare(password, customerAccount.passwordHash))) {
+    // Check if customer exists and has the right permissions
+    if (customerAccount && 
+        customerAccount.isActive && 
+        customerAccount.hasPortalAccess && 
+        (await bcrypt.compare(password, customerAccount.passwordHash))) {
       const { passwordHash, ...result } = customerAccount;
       return result;
     }

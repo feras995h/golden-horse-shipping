@@ -1,95 +1,33 @@
 {
-  "timestamp": "2025-09-26T11:22:07.239Z",
+  "timestamp": "2025-10-01T14:22:29.358Z",
   "containerNumber": "MSKU4603728",
   "trackingNumber": "GH-MSKU-962018",
   "summary": {
     "total": 5,
-    "passed": 2,
-    "failed": 3,
-    "successRate": "40.0%"
+    "passed": 0,
+    "failed": 5,
+    "successRate": "0.0%"
   },
   "tests": [
     {
       "name": "Public Container Tracking",
-      "status": "PASSED",
-      "data": {
-        "type": "shipment",
-        "data": {
-          "trackingNumber": "GHMFZWT2WEHVFE80",
-          "containerNumber": "MSKU4603728",
-          "description": "Electronics and Personal Items from China - Updated by Admin",
-          "status": "delivered",
-          "originPort": "شتغاي",
-          "destinationPort": "طرابلس",
-          "estimatedArrival": "2025-10-08T11:03:00.000Z",
-          "actualArrival": "2025-09-26T10:08:08.801Z",
-          "vesselName": "MSC OSCAR",
-          "shippingLine": ""
-        }
-      }
+      "status": "FAILED",
+      "error": "Tracking number not found"
     },
     {
       "name": "Public Tracking Number Search",
-      "status": "PASSED",
-      "data": {
-        "success": true,
-        "data": {
-          "container_number": "MSKU4603728",
-          "bl_number": "MSCUBL789456123",
-          "booking_number": "MSC240920001",
-          "shipping_line": "MSC",
-          "vessel_name": "MSC OSCAR",
-          "voyage": "MSC002W",
-          "port_of_loading": "Shanghai Port, China",
-          "port_of_discharge": "Benghazi Port, Libya",
-          "estimated_departure": "2024-09-20T08:00:00.000Z",
-          "estimated_arrival": "2024-10-15T16:00:00.000Z",
-          "status": "In Transit",
-          "milestones": [
-            {
-              "event": "Booking Confirmed",
-              "location": "Office",
-              "date": "2025-09-26T10:52:42.018Z",
-              "status": "Completed",
-              "description": "Shipment booking confirmed"
-            },
-            {
-              "event": "Departed",
-              "location": "Shanghai Port, China",
-              "date": "2024-09-20T08:00:00.000Z",
-              "status": "Completed",
-              "description": "Vessel departed from origin port"
-            },
-            {
-              "event": "In Transit",
-              "location": "Sea",
-              "date": "2025-09-26T11:22:06.871Z",
-              "status": "In Progress",
-              "description": "Container in transit"
-            }
-          ],
-          "location": {
-            "latitude": 0,
-            "longitude": 0,
-            "timestamp": "2025-09-26T11:22:06.871Z"
-          }
-        },
-        "shipmentInfo": {
-          "trackingNumber": "GH-MSKU-962018",
-          "description": "Real Container Shipment - Electronics and Consumer Goods",
-          "client": "Golden Horse Shipping Client"
-        }
-      }
+      "status": "FAILED",
+      "error": "Shipment not found"
     },
     {
       "name": "ShipsGo API Integration",
       "status": "FAILED",
-      "error": "ShipsGo API Error: V2 API error: Request failed with status code 404"
+      "error": "Shipment not found in ShipsGo API: Container MSKU4603728 not found in ShipsGo database"
     },
     {
       "name": "Customer Portal Access",
       "status": "FAILED",
-      "error": "No token returned"
+      "error": "Invalid tracking number or password"
     },
     {
       "name": "Real-time Tracking Data",

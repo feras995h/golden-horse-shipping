@@ -80,10 +80,10 @@ USER nextjs
 # Expose port
 EXPOSE 3000
 
-# Health check - using curl which is already installed in the alpine image
-HEALTHCHECK --interval=30s --timeout=15s --start-period=60s --retries=5 \
-    CMD curl -f http://localhost:${BACKEND_PORT:-3001}/api/health || exit 1
+# Health check - comprehensive check with longer startup time
+HEALTHCHECK --interval=45s --timeout=20s --start-period=120s --retries=6 \
+    CMD curl -f http://localhost:3001/api/health || curl -f http://127.0.0.1:3001/api/health || exit 1
 
-# Set entrypoint and command - run both services directly
+# Set entrypoint and command - improved startup sequence
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["sh", "-c", "echo 'Starting Golden Horse Shipping Application...' && echo 'Starting Backend on port ${BACKEND_PORT:-3001}...' && cd /app/backend && PORT=${BACKEND_PORT:-3001} node dist/main.js & BACKEND_PID=$! && sleep 5 && echo 'Starting Frontend on port ${FRONTEND_PORT:-3000}...' && cd /app/frontend && PORT=${FRONTEND_PORT:-3000} npm start & FRONTEND_PID=$! && echo 'Both services started successfully!' && echo 'Frontend: http://localhost:${FRONTEND_PORT:-3000}' && echo 'Backend API: http://localhost:${BACKEND_PORT:-3001}/api' && trap 'echo Shutting down services...; kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; wait $BACKEND_PID $FRONTEND_PID 2>/dev/null; exit 0' SIGTERM SIGINT && wait $BACKEND_PID $FRONTEND_PID"]
+CMD ["sh", "-c", "echo 'Starting Golden Horse Shipping Application...' && echo 'Starting Backend on port ${BACKEND_PORT:-3001}...' && cd /app/backend && PORT=${BACKEND_PORT:-3001} node dist/main.js & BACKEND_PID=$! && echo 'Waiting for backend to be ready...' && sleep 15 && echo 'Backend startup complete, starting Frontend on port ${FRONTEND_PORT:-3000}...' && cd /app/frontend && PORT=${FRONTEND_PORT:-3000} npm start & FRONTEND_PID=$! && echo 'Both services started successfully!' && echo 'Frontend: http://localhost:${FRONTEND_PORT:-3000}' && echo 'Backend API: http://localhost:${BACKEND_PORT:-3001}/api' && echo 'Health Check: http://localhost:${BACKEND_PORT:-3001}/api/health' && trap 'echo Shutting down services...; kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; wait $BACKEND_PID $FRONTEND_PID 2>/dev/null; exit 0' SIGTERM SIGINT && wait $BACKEND_PID $FRONTEND_PID"]

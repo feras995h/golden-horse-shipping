@@ -1,322 +1,214 @@
-# دليل النشر عبر Coolify | Coolify Deployment Guide
+# دليل النشر على Coolify - Golden Horse Shipping
 
-## نظرة عامة | Overview
+## 🔍 تشخيص المشكلة
 
-هذا الدليل يوضح كيفية إعادة نشر تطبيق Golden Horse Logistics بشكل هادئ وآمن عبر منصة Coolify.
+**الخطأ الحالي:**
+```
+Error: getaddrinfo EAI_AGAIN base
+```
 
-This guide explains how to quietly and safely redeploy the Golden Horse Logistics application via the Coolify platform.
+**السبب:** التطبيق يحاول الاتصال بمضيف يسمى "base" بدلاً من عنوان قاعدة البيانات الصحيح `72.60.92.146`.
+
+**الحل:** متغيرات البيئة غير محددة بشكل صحيح في Coolify.
 
 ---
 
-## الإعدادات الحالية | Current Configuration
+## ✅ الحل: إعداد متغيرات البيئة
 
-### ملف Coolify (.coolify.yml)
+### خطوات الإعداد في Coolify:
+
+1. **افتح مشروعك في Coolify**
+2. **اذهب إلى قسم "Environment Variables"**
+3. **أضف المتغيرات التالية:**
+
+---
+
+### 📋 قائمة المتغيرات المطلوبة
+
+انسخ والصق كل متغير من المتغيرات التالية في Coolify:
+
+#### 🔧 إعدادات الخادم
+```
+NODE_ENV=production
+PORT=3000
+BACKEND_PORT=3001
+FRONTEND_PORT=3000
+```
+
+#### 🗄️ إعدادات قاعدة البيانات (الطريقة الأولى - استخدام DATABASE_URL)
+```
+DATABASE_URL=postgres://postgres:A93zhpdV6icewK6rxbBQRScmxZvyWAhjvXg2QJApIKzU0gVx8CzubNgvo2O97n1l@72.60.92.146:5433/postgres
+```
+
+#### 🗄️ إعدادات قاعدة البيانات (الطريقة الثانية - متغيرات منفصلة - موصى بها)
+```
+DB_TYPE=postgres
+DB_HOST=72.60.92.146
+DB_PORT=5433
+DB_USERNAME=postgres
+DB_PASSWORD=A93zhpdV6icewK6rxbBQRScmxZvyWAhjvXg2QJApIKzU0gVx8CzubNgvo2O97n1l
+DB_NAME=postgres
+DB_SSL=false
+DB_SSL_REJECT_UNAUTHORIZED=false
+DB_SYNCHRONIZE=true
+DB_LOGGING=false
+```
+
+**⚠️ مهم:** استخدم **الطريقة الثانية (متغيرات منفصلة)** لأنها أكثر موثوقية في Coolify.
+
+#### 🔐 إعدادات JWT
+```
+JWT_SECRET=GoldenHorse-JWT-Secret-Key-2024-Production-Change-This-To-Very-Secure-Random-String
+JWT_EXPIRES_IN=7d
+```
+
+#### 🌐 إعدادات CORS والروابط
+```
+CORS_ORIGIN=*
+FRONTEND_URL=http://localhost:3000
+```
+
+#### 📱 إعدادات التطبيق
+```
+APP_NAME=Golden Horse Shipping
+APP_VERSION=1.0.0
+DEFAULT_LANGUAGE=ar
+UPLOAD_PATH=/app/uploads
+```
+
+#### 🚢 إعدادات ShipsGo API
+```
+SHIPSGO_API_URL=https://api.shipsgo.com/v1
+SHIPSGO_API_KEY=6eada10b-fcd9-4ab8-ba19-3e2cb33fc1fa
+SHIPSGO_USE_MOCK=false
+```
+
+#### ⚡ إعدادات إضافية
+```
+NEXT_TELEMETRY_DISABLED=1
+```
+
+---
+
+## 🚀 خطوات النشر
+
+### 1. إضافة المتغيرات
+- في Coolify، اذهب إلى **Environment Variables**
+- أضف **جميع** المتغيرات المذكورة أعلاه
+- **لا تترك أي متغير فارغاً**
+- **احذف أي متغيرات قديمة** قد تتعارض (مثل متغير قد يحتوي على "base")
+
+### 2. حفظ التغييرات
+- انقر على **Save** أو **Update**
+
+### 3. إعادة النشر
+- انقر على **Redeploy** أو **Deploy**
+- انتظر حتى يكتمل البناء
+
+### 4. التحقق من السجلات
+بعد النشر، افتح سجلات الحاوية. يجب أن ترى:
+
+```
+🔍 Database Configuration Debug:
+  - NODE_ENV: production
+  - DATABASE_URL: postgres://postgres:...
+  - DB_HOST: 72.60.92.146
+  - DB_TYPE: postgres
+  - Is PostgreSQL: true
+  - Synchronize: true
+✅ Using individual database variables
+```
+
+أو:
+
+```
+✅ Using DATABASE_URL
+[Nest] X  - XX/XX/XXXX, XX:XX:XX XX     LOG [NestFactory] Starting Nest application...
+[Nest] X  - XX/XX/XXXX, XX:XX:XX XX     LOG [InstanceLoader] TypeOrmModule dependencies initialized
+```
+
+**يجب ألا ترى:**
+```
+Error: getaddrinfo EAI_AGAIN base
+```
+
+---
+
+## ⚠️ نصائح مهمة
+
+### 1. DB_SYNCHRONIZE
+- **في النشر الأول:** استخدم `DB_SYNCHRONIZE=true` لإنشاء الجداول تلقائياً
+- **بعد النشر الأول:** غيّر إلى `DB_SYNCHRONIZE=false` لتجنب فقدان البيانات
+
+### 2. التحقق من الاتصال بقاعدة البيانات
+تأكد من:
+- ✅ البورت **5433** مفتوح للاتصالات من Coolify
+- ✅ عنوان IP **72.60.92.146** قابل للوصول من خادم Coolify
+- ✅ جدار الحماية يسمح بالاتصالات
+- ✅ بيانات الاعتماد صحيحة
+
+### 3. استكشاف الأخطاء
+إذا استمرت المشكلة:
+
+#### أ) تحقق من المتغيرات
+```bash
+# في سجلات Coolify، ابحث عن:
+🔍 Database Configuration Debug:
+  - DB_HOST: 72.60.92.146  # يجب أن يكون هذا العنوان وليس "base"
+```
+
+#### ب) اختبر الاتصال بقاعدة البيانات
+يمكنك استخدام أداة مثل **pgAdmin** أو **psql** للتحقق من الاتصال:
+```bash
+psql "postgres://postgres:A93zhpdV6icewK6rxbBQRScmxZvyWAhjvXg2QJApIKzU0gVx8CzubNgvo2O97n1l@72.60.92.146:5433/postgres"
+```
+
+#### ج) تحقق من docker-compose.yml
+تأكد من أن ملف `docker-compose.yml` يستخدم profile `single-app` أو `coolify`:
 ```yaml
-build:
-  dockerfile: Dockerfile
-  context: .
-deploy:
-  startCommand: "cd backend && node dist/main.js"
-  healthcheckPath: "/api/health"
-environment:
-  NODE_ENV: "production"
-  JWT_SECRET: "cc551c5e5110b8aee35898a7fa3ec0269d38e01849d711a9798ec61b154009a7dddcc71709725ee258c43f2e1678c3638534137a96211900425348409bfb1789"
-  JWT_EXPIRES_IN: "7d"
-  DATABASE_URL: "postgresql://postgres:Feras123@ep-weathered-darkness-a5ixqhzr.us-east-2.aws.neon.tech:5433/neondb?sslmode=require"
-```
-
-### Docker Compose للـ Coolify
-```yaml
-version: '3.8'
-services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - JWT_SECRET=${JWT_SECRET}
-      - DATABASE_URL=${DATABASE_URL}
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+profiles:
+  - single-app
+  - coolify
 ```
 
 ---
 
-## خطوات إعادة النشر الهادئ | Quiet Redeployment Steps
+## 📝 ملاحظات إضافية
 
-### 1. التحضير المسبق | Pre-deployment Preparation
+### الفرق بين الطريقتين:
 
-#### أ) التأكد من GitHub
-- ✅ تأكد من رفع جميع التغييرات إلى GitHub
-- ✅ تحقق من أن الفرع الرئيسي (main/master) محدث
-- ✅ راجع آخر commit للتأكد من صحة التغييرات
+**طريقة DATABASE_URL:**
+- ✅ بسيطة وسريعة
+- ❌ قد لا تعمل في بعض إعدادات Coolify
+- ❌ قد يتم تحليلها بشكل خاطئ
 
-#### b) GitHub Verification
-- ✅ Ensure all changes are pushed to GitHub
-- ✅ Verify main/master branch is up to date
-- ✅ Review latest commit for accuracy
-
-### 2. الوصول إلى Coolify | Accessing Coolify
-
-#### أ) تسجيل الدخول
-1. افتح متصفح الويب
-2. اذهب إلى لوحة تحكم Coolify الخاصة بك
-3. سجل دخولك باستخدام بياناتك
-
-#### b) Login Process
-1. Open web browser
-2. Navigate to your Coolify dashboard
-3. Login with your credentials
-
-### 3. العثور على المشروع | Finding Your Project
-
-#### أ) البحث عن التطبيق
-- ابحث عن "Golden Horse Logistics" أو اسم مشروعك
-- تأكد من أنك في المشروع الصحيح
-- تحقق من حالة التطبيق الحالية
-
-#### b) Locating Application
-- Search for "Golden Horse Logistics" or your project name
-- Ensure you're in the correct project
-- Check current application status
-
-### 4. تنفيذ إعادة النشر | Executing Redeployment
-
-#### أ) بدء عملية النشر
-1. اضغط على زر "Deploy" أو "Redeploy"
-2. اختر الفرع المناسب (عادة main)
-3. تأكد من الإعدادات قبل التأكيد
-4. اضغط "Confirm" أو "Start Deployment"
-
-#### b) Starting Deployment
-1. Click "Deploy" or "Redeploy" button
-2. Select appropriate branch (usually main)
-3. Verify settings before confirming
-4. Click "Confirm" or "Start Deployment"
-
-### 5. مراقبة عملية النشر | Monitoring Deployment
-
-#### أ) مراقبة السجلات
-- راقب سجلات البناء (Build Logs)
-- تابع سجلات النشر (Deployment Logs)
-- انتظر رسالة النجاح
-
-#### b) Log Monitoring
-- Monitor Build Logs
-- Follow Deployment Logs
-- Wait for success message
+**طريقة المتغيرات المنفصلة:**
+- ✅ أكثر موثوقية
+- ✅ تعمل في معظم الحالات
+- ✅ سهلة التحديث والتعديل
+- ✅ **موصى بها**
 
 ---
 
-## التحقق من نجاح النشر | Deployment Verification
+## 🎯 الخلاصة
 
-### 1. فحص الحالة الصحية | Health Check
+المشكلة الرئيسية هي أن **متغيرات قاعدة البيانات غير محددة بشكل صحيح**، مما يجعل التطبيق يحاول الاتصال بمضيف يسمى "base" (قيمة افتراضية).
 
-```bash
-# فحص صحة التطبيق
-curl -f https://[your-domain]/api/health
-
-# النتيجة المتوقعة
-{
-  "status": "ok",
-  "timestamp": "2024-01-XX",
-  "database": "connected"
-}
-```
-
-### 2. اختبار تسجيل الدخول | Login Testing
-
-#### بيانات الدخول الافتراضية | Default Credentials
-- **البريد الإلكتروني | Email:** admin@goldenhorse.com
-- **كلمة المرور | Password:** admin123
-
-### 3. فحص الوظائف الأساسية | Basic Functionality Check
-
-- ✅ تسجيل الدخول
-- ✅ عرض لوحة التحكم
-- ✅ إنشاء شحنة جديدة
-- ✅ تتبع الشحنات
-- ✅ إدارة العملاء
+**الحل:**
+1. أضف جميع المتغيرات المذكورة أعلاه في Coolify
+2. استخدم المتغيرات المنفصلة (DB_HOST, DB_PORT, إلخ)
+3. أعد النشر
+4. تحقق من السجلات
 
 ---
 
-## استكشاف الأخطاء | Troubleshooting
+## 📞 الدعم
 
-### مشاكل شائعة | Common Issues
-
-#### 1. فشل البناء | Build Failure
-```bash
-# الأسباب المحتملة:
-- خطأ في Dockerfile
-- مشاكل في dependencies
-- نقص في الذاكرة
-
-# الحلول:
-- راجع Dockerfile
-- تحقق من package.json
-- زيد موارد الخادم
-```
-
-#### 2. فشل قاعدة البيانات | Database Connection Failure
-```bash
-# التحقق من الاتصال:
-- راجع DATABASE_URL
-- تأكد من صحة بيانات الاعتماد
-- فحص حالة قاعدة البيانات
-
-# الحل:
-- تحديث متغيرات البيئة
-- إعادة تشغيل قاعدة البيانات
-```
-
-#### 3. مشاكل الشبكة | Network Issues
-```bash
-# الفحص:
-- تحقق من إعدادات المنافذ
-- راجع إعدادات الشبكة
-- فحص جدار الحماية
-
-# الحل:
-- تحديث إعدادات المنافذ
-- إعادة تكوين الشبكة
-```
+إذا واجهت أي مشاكل بعد تطبيق هذه التغييرات، تحقق من:
+1. سجلات الحاوية في Coolify
+2. رسائل التصحيح التي تبدأ بـ `🔍 Database Configuration Debug:`
+3. تأكد من أن جميع المتغيرات مضافة بشكل صحيح
 
 ---
 
-## الأوامر المفيدة | Useful Commands
-
-### في لوحة تحكم Coolify | In Coolify Dashboard
-
-#### 1. عرض السجلات | View Logs
-- **Build Logs:** سجلات البناء
-- **Runtime Logs:** سجلات التشغيل
-- **Error Logs:** سجلات الأخطاء
-
-#### 2. إدارة التطبيق | Application Management
-- **Restart:** إعادة تشغيل
-- **Stop:** إيقاف
-- **Scale:** توسيع النطاق
-- **Environment:** متغيرات البيئة
-
-#### 3. المراقبة | Monitoring
-- **Resource Usage:** استخدام الموارد
-- **Performance Metrics:** مقاييس الأداء
-- **Health Status:** حالة الصحة
-
----
-
-## خطة الطوارئ | Emergency Plan
-
-### في حالة فشل النشر | If Deployment Fails
-
-#### 1. الإجراءات الفورية | Immediate Actions
-```bash
-# 1. إيقاف النشر الحالي
-- اضغط "Stop Deployment" في Coolify
-
-# 2. العودة للإصدار السابق
-- اختر "Rollback to Previous Version"
-
-# 3. فحص السجلات
-- راجع Error Logs لتحديد المشكلة
-```
-
-#### 2. التشخيص | Diagnosis
-```bash
-# فحص الأخطاء الشائعة:
-- خطأ في البناء
-- مشاكل قاعدة البيانات
-- نقص الموارد
-- خطأ في الكود
-```
-
-#### 3. الإصلاح | Fix and Retry
-```bash
-# خطوات الإصلاح:
-1. إصلاح المشكلة في الكود
-2. رفع التغييرات إلى GitHub
-3. إعادة محاولة النشر
-4. مراقبة العملية
-```
-
----
-
-## نصائح للأداء الأمثل | Performance Optimization Tips
-
-### 1. تحسين البناء | Build Optimization
-```dockerfile
-# استخدام multi-stage builds
-FROM node:18-alpine AS builder
-# ... build steps
-
-FROM node:18-alpine AS production
-# ... production setup
-```
-
-### 2. تحسين قاعدة البيانات | Database Optimization
-```bash
-# فهرسة الجداول
-- إنشاء فهارس للاستعلامات الشائعة
-- تحسين استعلامات SQL
-- استخدام connection pooling
-```
-
-### 3. مراقبة الموارد | Resource Monitoring
-```bash
-# مراقبة منتظمة:
-- استخدام الذاكرة
-- استخدام المعالج
-- مساحة القرص
-- اتصالات الشبكة
-```
-
----
-
-## الدعم والمساعدة | Support and Help
-
-### 1. الوثائق الرسمية | Official Documentation
-- [Coolify Documentation](https://coolify.io/docs)
-- [Docker Documentation](https://docs.docker.com)
-- [Node.js Best Practices](https://nodejs.org/en/docs)
-
-### 2. المجتمع | Community
-- Coolify Discord Server
-- GitHub Issues
-- Stack Overflow
-
-### 3. الدعم الفني | Technical Support
-- راجع سجلات الأخطاء أولاً
-- اجمع معلومات النظام
-- وصف المشكلة بالتفصيل
-
----
-
-## الخلاصة | Summary
-
-إعادة النشر عبر Coolify عملية بسيطة وآمنة عند اتباع الخطوات الصحيحة:
-
-1. ✅ تحضير الكود في GitHub
-2. ✅ الوصول إلى Coolify
-3. ✅ تنفيذ النشر
-4. ✅ مراقبة العملية
-5. ✅ التحقق من النجاح
-
-Redeployment via Coolify is simple and safe when following proper steps:
-
-1. ✅ Prepare code in GitHub
-2. ✅ Access Coolify
-3. ✅ Execute deployment
-4. ✅ Monitor process
-5. ✅ Verify success
-
----
-
-**تاريخ آخر تحديث | Last Updated:** $(date)
-**الإصدار | Version:** 1.0
-**المؤلف | Author:** Golden Horse Logistics Team
+**آخر تحديث:** 2 أكتوبر 2025

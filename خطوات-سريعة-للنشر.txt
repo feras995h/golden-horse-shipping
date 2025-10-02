@@ -1,0 +1,96 @@
+╔════════════════════════════════════════════════════════════╗
+║       خطوات النشر السريع على Coolify - 3 دقائق          ║
+╚════════════════════════════════════════════════════════════╝
+
+📌 المشكلة الحالية:
+-----------------
+Error: getaddrinfo EAI_AGAIN base
+
+✅ الحل:
+-------
+متغيرات البيئة غير محددة في Coolify
+
+╔════════════════════════════════════════════════════════════╗
+║                  الخطوات (3 خطوات فقط)                   ║
+╚════════════════════════════════════════════════════════════╝
+
+1️⃣ افتح Coolify → Environment Variables
+
+2️⃣ احذف جميع المتغيرات القديمة (إن وجدت)
+
+3️⃣ أضف المتغيرات من ملف: RECOMMENDED_ENV_VARS.txt
+
+4️⃣ احفظ (Save) وأعد النشر (Redeploy)
+
+╔════════════════════════════════════════════════════════════╗
+║                    المتغيرات المطلوبة                     ║
+╚════════════════════════════════════════════════════════════╝
+
+انسخ من ملف: RECOMMENDED_ENV_VARS.txt
+
+أو انسخ من هنا:
+
+DATABASE_URL=postgres://postgres:A93zhpdV6icewK6rxbBQRScmxZvyWAhjvXg2QJApIKzU0gVx8CzubNgvo2O97n1l@72.60.92.146:5433/postgres
+NODE_ENV=production
+PORT=3000
+BACKEND_PORT=3001
+FRONTEND_PORT=3000
+DB_SYNCHRONIZE=true
+DB_LOGGING=false
+JWT_SECRET=GoldenHorse-JWT-Secret-Key-2024-Production-Change-This
+JWT_EXPIRES_IN=7d
+CORS_ORIGIN=*
+FRONTEND_URL=http://localhost:3000
+APP_NAME=Golden Horse Shipping
+APP_VERSION=1.0.0
+DEFAULT_LANGUAGE=ar
+UPLOAD_PATH=/app/uploads
+SHIPSGO_API_URL=https://api.shipsgo.com/v1
+SHIPSGO_API_KEY=6eada10b-fcd9-4ab8-ba19-3e2cb33fc1fa
+SHIPSGO_USE_MOCK=false
+NEXT_TELEMETRY_DISABLED=1
+
+╔════════════════════════════════════════════════════════════╗
+║                  ⚠️ تحذيرات مهمة                         ║
+╚════════════════════════════════════════════════════════════╝
+
+❌ لا تضف DB_SSL (قاعدة البيانات لا تدعم SSL)
+❌ لا تضف DB_HOST أو DB_PORT (استخدم DATABASE_URL)
+✅ استخدم DATABASE_URL فقط (تم اختبارها ✅)
+
+╔════════════════════════════════════════════════════════════╗
+║                 التحقق من النجاح                          ║
+╚════════════════════════════════════════════════════════════╝
+
+✅ يجب أن ترى في السجلات:
+   - "Using DATABASE_URL"
+   - "TypeOrmModule dependencies initialized"
+   - "Ready in XXXms"
+
+❌ يجب ألا ترى:
+   - "Error: getaddrinfo EAI_AGAIN base"
+   - "Unable to connect to the database"
+
+╔════════════════════════════════════════════════════════════╗
+║                    بعد النشر الأول                        ║
+╚════════════════════════════════════════════════════════════╝
+
+غيّر هذا المتغير:
+DB_SYNCHRONIZE=false
+
+هذا يمنع إعادة إنشاء الجداول ويحافظ على البيانات.
+
+╔════════════════════════════════════════════════════════════╗
+║                 ملفات التوثيق الإضافية                    ║
+╚════════════════════════════════════════════════════════════╝
+
+📄 RECOMMENDED_ENV_VARS.txt - قائمة المتغيرات
+📄 DATABASE_CONNECTION_TEST_RESULTS.md - نتائج الاختبار
+📄 DEPLOYMENT_FIXES_SUMMARY.md - ملخص الإصلاحات
+📄 COOLIFY_DEPLOYMENT_GUIDE.md - دليل شامل
+
+══════════════════════════════════════════════════════════════
+
+تم الاختبار بتاريخ: 2 أكتوبر 2025
+الحالة: ✅ جاهز للنشر
+

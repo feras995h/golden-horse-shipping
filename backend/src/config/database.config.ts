@@ -21,9 +21,45 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
     const isPostgres = !!databaseUrl || !!this.configService.get('DB_HOST') || this.configService.get('DB_TYPE') === 'postgres';
     const synchronize = this.configService.get('DB_SYNCHRONIZE') === 'true' || (nodeEnv !== 'production' && this.configService.get('DB_SYNCHRONIZE') !== 'false');
 
+    console.log('🔍 Database Configuration Debug:');
+    console.log('  - NODE_ENV:', nodeEnv);
+    console.log('  - DATABASE_URL:', databaseUrl ? `${databaseUrl.substring(0, 30)}...` : 'NOT SET');
+    console.log('  - DB_HOST:', this.configService.get('DB_HOST'));
+    console.log('  - DB_TYPE:', this.configService.get('DB_TYPE'));
+    console.log('  - Is PostgreSQL:', isPostgres);
+    console.log('  - Synchronize:', synchronize);
+
     if (isPostgres) {
-      // If DATABASE_URL is provided, use it
+      // Try to use individual variables first for more reliability
+      const dbHost = this.configService.get('DB_HOST');
+      const dbUsername = this.configService.get('DB_USERNAME');
+      const dbPassword = this.configService.get('DB_PASSWORD');
+      const dbName = this.configService.get('DB_NAME') || this.configService.get('DB_DATABASE');
+      const dbPort = parseInt(this.configService.get('DB_PORT', '5432'), 10);
+
+      // Prefer individual variables if all are provided
+      if (dbHost && dbUsername && dbPassword && dbName) {
+        console.log('✅ Using individual database variables');
+        const sslEnabled = this.configService.get('DB_SSL') === 'true';
+        const rejectUnauthorized = this.configService.get('DB_SSL_REJECT_UNAUTHORIZED') !== 'false';
+        
+        return {
+          type: 'postgres',
+          host: dbHost,
+          port: dbPort,
+          username: dbUsername,
+          password: dbPassword,
+          database: dbName,
+          entities: [User, Client, Shipment, Ad, PaymentRecord, Setting, CustomerAccount],
+          synchronize,
+          logging: nodeEnv === 'development',
+          ssl: sslEnabled ? ({ rejectUnauthorized } as any) : false,
+        } as any;
+      }
+
+      // If DATABASE_URL is provided and individual vars are not complete, use it
       if (databaseUrl) {
+        console.log('✅ Using DATABASE_URL');
         return {
           type: 'postgres',
           url: databaseUrl,
@@ -34,23 +70,10 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
         } as any;
       }
 
-      // Fallback to individual variables
-      const sslEnabled = this.configService.get('DB_SSL') === 'true';
-      const rejectUnauthorized = this.configService.get('DB_SSL_REJECT_UNAUTHORIZED') !== 'false';
-      return {
-        type: 'postgres',
-        host: this.configService.get('DB_HOST'),
-        port: parseInt(this.configService.get('DB_PORT', '5432'), 10),
-        username: this.configService.get('DB_USERNAME'),
-        password: this.configService.get('DB_PASSWORD'),
-        database: this.configService.get('DB_NAME') || this.configService.get('DB_DATABASE'),
-        entities: [User, Client, Shipment, Ad, PaymentRecord, Setting, CustomerAccount],
-        synchronize,
-        logging: nodeEnv === 'development',
-        ssl: sslEnabled ? ({ rejectUnauthorized } as any) : false,
-      } as any;
+      throw new Error('PostgreSQL configuration incomplete: Either provide DATABASE_URL or all individual variables (DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME)');
     }
 
+    console.log('✅ Using SQLite database');
     return {
       type: 'sqlite',
       database: this.configService.get('DB_PATH', './database.sqlite'),
@@ -66,8 +89,29 @@ const isProd = process.env.NODE_ENV === 'production';
 const databaseUrl = process.env.DATABASE_URL;
 const isPg = !!databaseUrl || !!process.env.DB_HOST || process.env.DB_TYPE === 'postgres';
 
+// Get individual database variables
+const dbHost = process.env.DB_HOST;
+const dbUsername = process.env.DB_USERNAME;
+const dbPassword = process.env.DB_PASSWORD;
+const dbName = process.env.DB_NAME || process.env.DB_DATABASE;
+const dbPort = parseInt(process.env.DB_PORT || '5432', 10);
+const hasIndividualVars = dbHost && dbUsername && dbPassword && dbName;
+
 const dataSourceOptions: DataSourceOptions = isPg
-  ? databaseUrl
+  ? hasIndividualVars
+    ? {
+        type: 'postgres',
+        host: dbHost,
+        port: dbPort,
+        username: dbUsername,
+        password: dbPassword,
+        database: dbName,
+        entities: [User, Client, Shipment, Ad, PaymentRecord, Setting, CustomerAccount],
+        migrations: [isProd ? 'dist/migrations/*.js' : 'src/migrations/*.ts'],
+        synchronize: false,
+        ssl: process.env.DB_SSL === 'true' ? ({ rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false' } as any) : false,
+      }
+    : databaseUrl
     ? {
         type: 'postgres',
         url: databaseUrl,
@@ -77,16 +121,11 @@ const dataSourceOptions: DataSourceOptions = isPg
         ssl: databaseUrl.includes('sslmode=require') || databaseUrl.includes('sslmode=verify-full') ? { rejectUnauthorized: false } : false,
       }
     : {
-        type: 'postgres',
-        host: process.env.DB_HOST,
-        port: parseInt(process.env.DB_PORT || '5432', 10),
-        username: process.env.DB_USERNAME,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME || process.env.DB_DATABASE,
+        type: 'sqlite',
+        database: process.env.DB_PATH || './database.sqlite',
         entities: [User, Client, Shipment, Ad, PaymentRecord, Setting, CustomerAccount],
         migrations: [isProd ? 'dist/migrations/*.js' : 'src/migrations/*.ts'],
         synchronize: false,
-        ssl: process.env.DB_SSL === 'true' ? ({ rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false' } as any) : false,
       }
   : {
       type: 'sqlite',

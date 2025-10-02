@@ -72,7 +72,6 @@ ENV PORT=3000
 ENV FRONTEND_PORT=3000
 ENV BACKEND_PORT=3001
 ENV HOSTNAME="0.0.0.0"
-ENV DATABASE_URL=postgres://postgres:A93zhpdV6icewK6rxbBQRScmxZvyWAhjvXg2QJApIKzU0gVx8CzubNgvo2O97n1l@72.60.92.146:5433/postgres
 
 # Switch to non-root user
 USER nextjs

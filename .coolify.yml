@@ -2,10 +2,15 @@ build:
   dockerfile: Dockerfile
   context: .
 deploy:
-  startCommand: "cd backend && node dist/main.js"
   healthcheckPath: "/api/health"
+  healthcheckInterval: 45
+  healthcheckTimeout: 20
+  healthcheckRetries: 6
 environment:
   NODE_ENV: "production"
+  PORT: "3000"
+  FRONTEND_PORT: "3000"
+  BACKEND_PORT: "3001"
   JWT_SECRET: "cc551c5e5110b8aee35898a7fa3ec0269d38e01849d711a9798ec61b154009a7dddcc71709725ee258c43f2e1678c3638534137a96211900425348409bfb1789"
   JWT_EXPIRES_IN: "7d"
   DATABASE_URL: "postgresql://postgres:Feras123@ep-weathered-darkness-a5ixqhzr.us-east-2.aws.neon.tech:5433/neondb?sslmode=require"

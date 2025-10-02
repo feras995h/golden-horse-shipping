@@ -47,10 +47,17 @@ async function bootstrap() {
     console.log(`🌍 Environment: ${isProd ? 'production' : 'development'}`);
     
     console.log('🔗 Configuring CORS...');
+    const corsOrigins = isProd
+      ? (process.env.CORS_ORIGIN 
+          ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+          : process.env.COOLIFY_URL 
+            ? [process.env.COOLIFY_URL] 
+            : true)
+      : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3002', 'http://127.0.0.1:3002'];
+    
+    console.log('🔗 CORS Origins:', corsOrigins);
     app.enableCors({
-      origin: isProd
-        ? (process.env.COOLIFY_URL ? [process.env.COOLIFY_URL] : true)
-        : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3002', 'http://127.0.0.1:3002'],
+      origin: corsOrigins,
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
       credentials: true,
     });

@@ -46,8 +46,14 @@ export class ShipsGoRateLimitGuard implements CanActivate {
       return true;
     }
 
-    // Fallback: in-memory limiter
+    // Fallback: in-memory limiter with automatic cleanup
     const now = Date.now();
+    
+    // Periodic cleanup every 100 requests to prevent memory buildup
+    if (this.rateLimitMap.size > 100 && Math.random() < 0.1) {
+      this.cleanupOldEntries();
+    }
+    
     const entry = this.rateLimitMap.get(clientId);
 
     if (!entry || now > entry.resetTime) {
@@ -71,17 +77,20 @@ export class ShipsGoRateLimitGuard implements CanActivate {
   }
 
   // Clean up old entries periodically
-  private cleanupOldEntries(): void {
+  cleanupOldEntries(): void {
     const now = Date.now();
+    let cleaned = 0;
     for (const [clientId, entry] of this.rateLimitMap.entries()) {
       if (now > entry.resetTime) {
         this.rateLimitMap.delete(clientId);
+        cleaned++;
       }
+    }
+    if (cleaned > 0) {
+      this.logger.debug(`Cleaned up ${cleaned} expired rate limit entries`);
     }
   }
 }
 
-// Set up periodic cleanup
-setInterval(() => {
-  // This is a simple approach; in production, consider using Redis or similar
-}, 5 * 60 * 1000); // Clean up every 5 minutes
+// Note: Cleanup is handled by the guard instance itself when Redis is not available
+// If using in-memory storage, the cleanup happens automatically on each request check

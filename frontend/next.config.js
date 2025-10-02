@@ -61,19 +61,13 @@ const nextConfig = {
   },
   
   async rewrites() {
-    // In production, use NEXT_PUBLIC_API_URL or backend port from env
-    const backendUrl = process.env.NODE_ENV === 'production'
-      ? (process.env.NEXT_PUBLIC_API_URL?.startsWith('http') 
-          ? process.env.NEXT_PUBLIC_API_URL 
-          : `http://localhost:${process.env.BACKEND_PORT || 3001}/api`)
-      : 'http://localhost:3001/api';
+    // Force rewrite to backend in Docker container
+    const backendUrl = `http://localhost:${process.env.BACKEND_PORT || 3001}/api`;
     
     return [
       {
         source: '/api/:path*',
-        destination: process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_API_URL === '/api'
-          ? '/api/:path*'  // Skip rewrite if using nginx proxy
-          : `${backendUrl}/:path*`,
+        destination: `${backendUrl}/:path*`,
       },
     ];
   },

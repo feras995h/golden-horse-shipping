@@ -22,8 +22,8 @@ FROM node:22-alpine AS production
 
 WORKDIR /app
 
-# Install dumb-init and curl for proper signal handling and health checks
-RUN apk add --no-cache dumb-init curl
+# Install dumb-init, curl and wget for proper signal handling and health checks
+RUN apk add --no-cache dumb-init curl wget
 
 # Create app user
 RUN addgroup -g 1001 -S nodejs
@@ -51,7 +51,7 @@ EXPOSE 3001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:3001/api/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/health || curl -f http://localhost:3001/api/health || exit 1
 
 # Start the application
 ENTRYPOINT ["dumb-init", "--"]

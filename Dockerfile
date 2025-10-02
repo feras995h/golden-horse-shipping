@@ -2,7 +2,7 @@
 FROM node:22-alpine AS base
 
 # Install system dependencies
-RUN apk add --no-cache libc6-compat curl dumb-init
+RUN apk add --no-cache libc6-compat curl wget dumb-init
 
 # Set working directory
 WORKDIR /app
@@ -39,7 +39,7 @@ RUN cd backend && npm run build && \
 FROM node:22-alpine AS production
 
 # Install system dependencies
-RUN apk add --no-cache libc6-compat curl dumb-init
+RUN apk add --no-cache libc6-compat curl wget dumb-init
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
@@ -81,7 +81,7 @@ EXPOSE 3000
 
 # Health check - comprehensive check with longer startup time
 HEALTHCHECK --interval=45s --timeout=20s --start-period=120s --retries=6 \
-    CMD curl -f http://localhost:3001/api/health || curl -f http://127.0.0.1:3001/api/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/health || curl -f http://localhost:3001/api/health || exit 1
 
 # Set entrypoint and command - improved startup sequence
 ENTRYPOINT ["dumb-init", "--"]

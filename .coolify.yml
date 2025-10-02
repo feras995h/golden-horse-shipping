@@ -6,6 +6,7 @@ deploy:
   healthcheckInterval: 45
   healthcheckTimeout: 20
   healthcheckRetries: 6
+  startPeriod: 120
 environment:
   NODE_ENV: "production"
   PORT: "3000"

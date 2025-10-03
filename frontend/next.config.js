@@ -12,7 +12,7 @@ const nextConfig = {
   
   // Image optimization
   images: {
-    domains: ['localhost', '127.0.0.1', 'goldenhorse.ly', 'api.goldenhorse.ly'],
+    domains: ['localhost', '127.0.0.1', 'goldenhorse.ly', 'api.goldenhorse.ly', 'goldenhorse-ly.com'],
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 60,
     dangerouslyAllowSVG: true,
@@ -62,12 +62,16 @@ const nextConfig = {
   
   async rewrites() {
     // Force rewrite to backend in Docker container
-    const backendUrl = `http://localhost:${process.env.BACKEND_PORT || 3001}/api`;
+    const backendUrl = `http://localhost:${process.env.BACKEND_PORT || 3001}`;
     
     return [
       {
         source: '/api/:path*',
-        destination: `${backendUrl}/:path*`,
+        destination: `${backendUrl}/api/:path*`,
+      },
+      {
+        source: '/uploads/:path*',
+        destination: `${backendUrl}/uploads/:path*`,
       },
     ];
   },

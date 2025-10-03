@@ -128,7 +128,7 @@ const NewClientPage = () => {
     e.preventDefault();
     
     if (validateForm()) {
-      const payload = {
+      const payload: any = {
         fullName: formData.fullName,
         email: formData.email,
         phone: formData.phone,
@@ -139,7 +139,20 @@ const NewClientPage = () => {
         country: formData.country,
         postalCode: undefined,
         notes: formData.notes || undefined,
+        isActive: formData.isActive,
+        hasPortalAccess: formData.hasPortalAccess,
       };
+
+      // Add portal access credentials if enabled
+      if (formData.hasPortalAccess) {
+        if (formData.trackingNumber) {
+          payload.trackingNumber = formData.trackingNumber;
+        }
+        if (formData.password) {
+          payload.password = formData.password;
+        }
+      }
+
       createClientMutation.mutate(payload);
     }
   };

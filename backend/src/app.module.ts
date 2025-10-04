@@ -29,6 +29,7 @@ import { APP_GUARD } from '@nestjs/core';
       envFilePath: '.env',
     }),
     TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
       useClass: DatabaseConfig,
     }),
     ServeStaticModule.forRoot({

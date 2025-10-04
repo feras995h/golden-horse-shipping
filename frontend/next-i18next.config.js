@@ -13,6 +13,7 @@ module.exports = {
   reloadOnPrerender: process.env.NODE_ENV === 'development',
   keySeparator: '.',
   nsSeparator: ':',
+  returnObjects: true,
   interpolation: {
     escapeValue: false,
   },

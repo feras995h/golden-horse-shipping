@@ -301,7 +301,11 @@
         "totalPaidDesc": "المبلغ المدفوع فعلياً",
         "totalPending": "المتبقي",
         "totalPendingDesc": "المبلغ المتبقي للدفع",
-        "paymentMethodsUsed": "طرق الدفع المستخدمة"
+        "paymentMethodsUsed": "طرق الدفع المستخدمة",
+        "remaining": "المبلغ المتبقي",
+        "paid": "المبلغ المدفوع",
+        "actuallyPaid": "المدفوع فعلياً",
+        "remainingToPay": "المتبقي للدفع"
       },
       "paymentMethods": {
         "cash": "نقداً",
@@ -309,11 +313,8 @@
         "credit_card": "بطاقة ائتمان",
         "check": "شيك"
       },
-      "recentShipments": {
-        "title": "الشحنات الأخيرة",
-        "viewAll": "عرض الكل",
-        "noShipments": "لا توجد شحنات حالياً"
-      },
+      "recentShipments": "الشحنات الأخيرة",
+      "viewAll": "عرض الكل",
       "status": {
         "pending": "في الانتظار",
         "processing": "قيد المعالجة",

@@ -239,7 +239,7 @@ const CustomerDashboard = () => {
     <CustomerLayout>
       <Head>
         <title>{t('customer.dashboard.title', { customerName: dashboardData.customer.customerName })}</title>
-        <meta name="description" content="لوحة تحكم العميل لمتابعة الشحنات" />
+        <meta name="description" content={t('customer.dashboard.description')} />
       </Head>
 
       <div className="space-y-8">
@@ -250,7 +250,7 @@ const CustomerDashboard = () => {
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/20 to-transparent rounded-full -translate-y-16 translate-x-16" />
             <div className="relative z-10">
               <h1 className="text-3xl font-bold mb-3 drop-shadow-lg">
-                مرحباً، {dashboardData.customer.customerName}
+                {t('customer.dashboard.welcome', { customerName: dashboardData.customer.customerName })}
               </h1>
               <p className="text-gold-100 text-lg font-medium">
                 {t('customer.dashboard.trackingNumber')}: {dashboardData.customer.trackingNumber}

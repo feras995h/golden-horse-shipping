@@ -1,5 +1,6 @@
 import { useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/router';
+import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import { 
   Home, 
@@ -26,6 +27,7 @@ interface CustomerData {
 
 const CustomerLayout = ({ children }: CustomerLayoutProps) => {
   const router = useRouter();
+  const { t } = useTranslation('common');
   const [customerData, setCustomerData] = useState<CustomerData | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -56,31 +58,31 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
 
   const navigation = [
     {
-      name: 'لوحة التحكم',
+      name: t('customer.layout.dashboard'),
       href: '/customer/dashboard',
       icon: Home,
       current: router.pathname === '/customer/dashboard',
     },
     {
-      name: 'شحناتي',
+      name: t('customer.layout.myShipments'),
       href: '/customer/shipments',
       icon: Package,
       current: router.pathname.startsWith('/customer/shipments'),
     },
     {
-      name: 'البيانات المالية',
+      name: t('customer.layout.financialData'),
       href: '/customer/financial',
       icon: DollarSign,
       current: router.pathname.startsWith('/customer/financial'),
     },
     {
-      name: 'الملف الشخصي',
+      name: t('customer.layout.profile'),
       href: '/customer/profile',
       icon: User,
       current: router.pathname === '/customer/profile',
     },
     {
-      name: 'تتبع عام',
+      name: t('customer.layout.publicTracking'),
       href: '/tracking',
       icon: MapPin,
       current: router.pathname === '/tracking',
@@ -105,7 +107,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)} />
         <div className="fixed inset-y-0 right-0 flex w-full max-w-xs flex-col bg-white/95 backdrop-blur-xl shadow-2xl border-l border-gold-200/50">
           <div className="flex h-16 items-center justify-between px-4 border-b border-gold-200/30 bg-gradient-to-r from-gold-50/50 to-amber-50/30">
-            <h2 className="text-lg font-semibold bg-gradient-to-r from-gold-600 to-amber-600 bg-clip-text text-transparent">القائمة</h2>
+            <h2 className="text-lg font-semibold bg-gradient-to-r from-gold-600 to-amber-600 bg-clip-text text-transparent">{t('customer.layout.menu')}</h2>
             <button
               onClick={() => setIsSidebarOpen(false)}
               className="text-gold-400 hover:text-gold-600 transition-colors p-1 rounded-lg hover:bg-gold-100/50"
@@ -148,7 +150,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
               className="flex items-center w-full px-4 py-3 text-base font-semibold text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 rounded-xl transition-all duration-300 group hover:shadow-md hover:shadow-red-100/50"
             >
               <LogOut className="h-5 w-5 ml-3 group-hover:scale-110 transition-transform duration-300" />
-              تسجيل الخروج
+              {t('customer.layout.logout')}
             </button>
           </div>
         </div>
@@ -212,7 +214,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
               className="flex items-center w-full px-4 py-3 text-base font-semibold text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 rounded-xl transition-all duration-300 group hover:shadow-md hover:shadow-red-100/50"
             >
               <LogOut className="h-5 w-5 ml-3 group-hover:scale-110 transition-transform duration-300" />
-              تسجيل الخروج
+              {t('customer.layout.logout')}
             </button>
           </div>
         </div>
@@ -233,7 +235,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
             <div className="flex items-center space-x-4 space-x-reverse">
               <div className="hidden sm:block">
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-gold-700 via-gold-600 to-amber-600 bg-clip-text text-transparent drop-shadow-sm">
-                  Golden Horse Shipping
+                  {t('site.name')}
                 </h1>
               </div>
             </div>

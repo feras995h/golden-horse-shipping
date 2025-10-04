@@ -2,7 +2,8 @@
   "site": {
     "title": "شركة الحصان الذهبي للشحن",
     "description": "شركة الحصان الذهبي للشحن - رائدة في مجال الشحن البحري والجوي من الصين إلى ليبيا",
-    "tagline": "شريكك الموثوق في عالم الشحن والخدمات اللوجستية"
+    "tagline": "شريكك الموثوق في عالم الشحن والخدمات اللوجستية",
+    "name": "شركة الحصان الذهبي للشحن"
   },
   "nav": {
     "home": "الرئيسية",
@@ -276,27 +277,22 @@
     },
     "dashboard": {
       "title": "لوحة التحكم",
-      "loading": "جاري تحميل لوحة التحكم...",
-      "error": "فشل في تحميل بيانات لوحة التحكم",
+      "description": "لوحة تحكم العميل لمتابعة الشحنات",
+      "welcome": "مرحباً، {{customerName}}",
+      "trackingNumber": "رقم التتبع",
+      "loading": "جاري التحميل...",
+      "error": "حدث خطأ في تحميل البيانات",
       "retry": "إعادة المحاولة",
       "noData": "لا توجد بيانات متاحة",
-      "welcome": "مرحباً",
-      "trackingNumber": "رقم التتبع الخاص بك",
       "statistics": {
         "totalShipments": "إجمالي الشحنات",
+        "totalShipmentsDesc": "العدد الكلي للشحنات",
         "activeShipments": "الشحنات النشطة",
+        "activeShipmentsDesc": "الشحنات قيد التنفيذ",
         "deliveredShipments": "الشحنات المسلمة",
-        "totalPayments": "إجمالي المدفوعات"
-      },
-      "stats": {
-        "totalShipments": "إجمالي الشحنات",
-        "activeShipments": "الشحنات النشطة",
-        "deliveredShipments": "الشحنات المسلمة",
-        "totalPayments": "إجمالي المدفوعات"
-      },
-      "charts": {
-        "monthlyShipments": "الشحنات الشهرية",
-        "paymentMethods": "طرق الدفع"
+        "deliveredShipmentsDesc": "الشحنات المكتملة",
+        "totalPayments": "إجمالي المدفوعات",
+        "totalPaymentsDesc": "مجموع المدفوعات"
       },
       "financial": {
         "totalValue": "إجمالي القيمة",
@@ -343,6 +339,15 @@
         "november": "نوفمبر",
         "december": "ديسمبر"
       }
+    },
+    "layout": {
+      "menu": "القائمة",
+      "dashboard": "لوحة التحكم",
+      "myShipments": "شحناتي",
+      "financialData": "البيانات المالية",
+      "profile": "الملف الشخصي",
+      "publicTracking": "تتبع عام",
+      "logout": "تسجيل الخروج"
     }
   }
 }

@@ -256,5 +256,87 @@
     "previous": "السابق",
     "submit": "إرسال",
     "close": "إغلاق"
+  },
+  "customer": {
+    "login": {
+      "title": "تسجيل دخول العملاء",
+      "subtitle": "ادخل بياناتك للوصول إلى حسابك",
+      "customerNumber": "رقم العميل",
+      "customerNumberPlaceholder": "أدخل رقم العميل",
+      "password": "كلمة المرور",
+      "passwordPlaceholder": "أدخل كلمة المرور",
+      "showPassword": "إظهار كلمة المرور",
+      "hidePassword": "إخفاء كلمة المرور",
+      "loginButton": "تسجيل الدخول",
+      "loggingIn": "جاري تسجيل الدخول...",
+      "noAccount": "لا تملك حساب؟",
+      "contactUs": "تواصل معنا",
+      "trackWithoutLogin": "تتبع الشحنة بدون تسجيل دخول",
+      "sslProtected": "محمي بتشفير SSL"
+    },
+    "dashboard": {
+      "title": "لوحة التحكم",
+      "loading": "جاري تحميل لوحة التحكم...",
+      "error": "فشل في تحميل بيانات لوحة التحكم",
+      "retry": "إعادة المحاولة",
+      "noData": "لا توجد بيانات متاحة",
+      "welcome": "مرحباً",
+      "trackingNumber": "رقم التتبع الخاص بك",
+      "statistics": {
+        "totalShipments": "إجمالي الشحنات",
+        "activeShipments": "الشحنات النشطة",
+        "deliveredShipments": "الشحنات المسلمة",
+        "totalPayments": "إجمالي المدفوعات"
+      },
+      "charts": {
+        "monthlyShipments": "الشحنات الشهرية",
+        "paymentMethods": "طرق الدفع"
+      },
+      "financial": {
+        "totalValue": "إجمالي القيمة",
+        "totalValueDesc": "قيمة جميع الشحنات",
+        "totalPaid": "المدفوع",
+        "totalPaidDesc": "المبلغ المدفوع فعلياً",
+        "totalPending": "المتبقي",
+        "totalPendingDesc": "المبلغ المتبقي للدفع",
+        "paymentMethodsUsed": "طرق الدفع المستخدمة"
+      },
+      "paymentMethods": {
+        "cash": "نقداً",
+        "bank_transfer": "تحويل بنكي",
+        "credit_card": "بطاقة ائتمان",
+        "check": "شيك"
+      },
+      "recentShipments": {
+        "title": "الشحنات الأخيرة",
+        "viewAll": "عرض الكل",
+        "noShipments": "لا توجد شحنات حالياً"
+      },
+      "status": {
+        "pending": "في الانتظار",
+        "processing": "قيد المعالجة",
+        "shipped": "تم الشحن",
+        "in_transit": "في الطريق",
+        "at_port": "في الميناء",
+        "customs_clearance": "التخليص الجمركي",
+        "delivered": "تم التسليم",
+        "delayed": "متأخر",
+        "cancelled": "ملغي"
+      },
+      "months": {
+        "january": "يناير",
+        "february": "فبراير",
+        "march": "مارس",
+        "april": "أبريل",
+        "may": "مايو",
+        "june": "يونيو",
+        "july": "يوليو",
+        "august": "أغسطس",
+        "september": "سبتمبر",
+        "october": "أكتوبر",
+        "november": "نوفمبر",
+        "december": "ديسمبر"
+      }
+    }
   }
 }

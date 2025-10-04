@@ -13,7 +13,7 @@ const AppDataSource = new DataSource({
   type: 'sqlite',
   database: './database.sqlite',
   entities: [CustomerAccount, Shipment, Client, User, Ad, PaymentRecord, Setting],
-  synchronize: false,
+  synchronize: true,
 });
 
 async function createTestCustomer() {

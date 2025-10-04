@@ -137,10 +137,10 @@ const CustomerLogin = () => {
                 <Shield className="h-10 w-10 text-white" />
               </div>
               <h2 className="text-4xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent mb-4">
-                تسجيل دخول العملاء
+                {t('customer.login.title')}
               </h2>
               <p className="text-blue-100/80 text-lg">
-                ادخل رقم العميل وكلمة المرور للوصول إلى حسابك
+                {t('customer.login.subtitle')}
               </p>
             </div>
 
@@ -160,7 +160,7 @@ const CustomerLogin = () => {
                   {/* Customer Number Field */}
                   <div className="group">
                     <label htmlFor="customerNumber" className="block text-sm font-medium text-blue-100 mb-3">
-                      رقم العميل
+                      {t('customer.login.customerNumber')}
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none z-10">
@@ -174,7 +174,7 @@ const CustomerLogin = () => {
                         value={formData.customerNumber}
                         onChange={handleInputChange}
                         className="w-full px-4 py-4 pr-12 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-blue-200/60 focus:outline-none focus:ring-2 focus:ring-gold-400/50 focus:border-gold-400/50 transition-all duration-300 hover:bg-white/15"
-                        placeholder="مثال: CUST-0001"
+                        placeholder={t('customer.login.customerNumberPlaceholder')}
                       />
                       <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-gold-400/0 via-gold-400/5 to-gold-400/0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                     </div>
@@ -183,7 +183,7 @@ const CustomerLogin = () => {
                   {/* Password Field */}
                   <div className="group">
                     <label htmlFor="password" className="block text-sm font-medium text-blue-100 mb-3">
-                      كلمة المرور
+                      {t('customer.login.password')}
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none z-10">
@@ -198,7 +198,7 @@ const CustomerLogin = () => {
                         onChange={handleInputChange}
                         autoComplete="current-password"
                         className="w-full px-4 py-4 pr-12 pl-12 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-blue-200/60 focus:outline-none focus:ring-2 focus:ring-gold-400/50 focus:border-gold-400/50 transition-all duration-300 hover:bg-white/15"
-                        placeholder="ادخل كلمة المرور"
+                        placeholder={t('customer.login.passwordPlaceholder')}
                       />
                       <button
                         type="button"
@@ -227,10 +227,10 @@ const CustomerLogin = () => {
                     {isLoading ? (
                       <div className="flex items-center relative z-10">
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                        جاري تسجيل الدخول...
+                        {t('customer.login.loggingIn')}
                       </div>
                     ) : (
-                      <span className="relative z-10">تسجيل الدخول</span>
+                      <span className="relative z-10">{t('customer.login.loginButton')}</span>
                     )}
                   </button>
                 </div>
@@ -240,9 +240,9 @@ const CustomerLogin = () => {
               <div className="mt-8 space-y-4">
                 <div className="text-center">
                   <p className="text-blue-100/80 text-sm">
-                    لا تملك حساب؟{' '}
+                    {t('customer.login.noAccount')}{' '}
                     <Link href="/contact" className="font-medium text-gold-400 hover:text-gold-300 transition-colors hover:underline">
-                      تواصل معنا
+                      {t('customer.login.contactUs')}
                     </Link>
                   </p>
                 </div>
@@ -253,7 +253,7 @@ const CustomerLogin = () => {
                     className="inline-flex items-center text-sm text-blue-300 hover:text-white transition-colors hover:underline"
                   >
                     <Sparkles className="w-4 h-4 mr-2" />
-                    تتبع الشحنة بدون تسجيل دخول
+                    {t('customer.login.trackWithoutLogin')}
                   </Link>
                 </div>
               </div>
@@ -263,7 +263,7 @@ const CustomerLogin = () => {
             <div className="text-center">
               <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
                 <Shield className="w-4 h-4 text-green-400 mr-2" />
-                <span className="text-sm text-blue-100/80">محمي بتشفير SSL</span>
+                <span className="text-sm text-blue-100/80">{t('customer.login.sslProtected')}</span>
               </div>
             </div>
           </div>

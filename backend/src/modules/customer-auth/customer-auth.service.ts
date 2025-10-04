@@ -27,9 +27,12 @@ export class CustomerAuthService {
   ) {}
 
   async validateCustomer(trackingNumber: string, password: string): Promise<any> {
+    // Normalize input (trim and uppercase)
+    const normalizedTracking = (trackingNumber || '').trim().toUpperCase();
+
     // First find customer without boolean conditions
     const customerAccount = await this.customerAccountRepository.findOne({
-      where: { trackingNumber },
+      where: { trackingNumber: normalizedTracking },
       relations: ['shipments'],
     });
 
@@ -45,9 +48,12 @@ export class CustomerAuthService {
   }
 
   async validateCustomerByNumber(customerNumber: string, password: string): Promise<any> {
+    // Normalize input (trim and uppercase)
+    const normalizedCustomerNumber = (customerNumber || '').trim().toUpperCase();
+
     // First find customer without boolean conditions
     const customerAccount = await this.customerAccountRepository.findOne({
-      where: { customerNumber },
+      where: { customerNumber: normalizedCustomerNumber },
       relations: ['shipments'],
     });
 

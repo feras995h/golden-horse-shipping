@@ -66,32 +66,34 @@ const CustomerDashboard = () => {
 
   const fetchDashboardData = useCallback(async () => {
     try {
+      setIsLoading(true);
+      setError(null);
+      
       const token = localStorage.getItem('customerToken');
       if (!token) {
         router.push('/customer/login');
         return;
       }
 
-      const response = await axios.get('/api/customer-portal/dashboard', {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/customer/dashboard`, {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       setDashboardData(response.data);
     } catch (error: any) {
-      console.error('Dashboard error:', error);
+      console.error('Dashboard fetch error:', error);
       if (error.response?.status === 401) {
         localStorage.removeItem('customerToken');
-        localStorage.removeItem('customerData');
         router.push('/customer/login');
       } else {
-        setError('فشل في تحميل بيانات لوحة التحكم');
+        setError(t('customer.dashboard.error'));
       }
     } finally {
       setIsLoading(false);
     }
-  }, [router]);
+  }, [router, t]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -113,23 +115,23 @@ const CustomerDashboard = () => {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'في الانتظار';
+        return t('customer.dashboard.status.pending');
       case 'processing':
-        return 'قيد المعالجة';
+        return t('customer.dashboard.status.processing');
       case 'shipped':
-        return 'تم الشحن';
+        return t('customer.dashboard.status.shipped');
       case 'in_transit':
-        return 'في الطريق';
+        return t('customer.dashboard.status.in_transit');
       case 'at_port':
-        return 'في الميناء';
+        return t('customer.dashboard.status.at_port');
       case 'customs_clearance':
-        return 'التخليص الجمركي';
+        return t('customer.dashboard.status.customs_clearance');
       case 'delivered':
-        return 'تم التسليم';
+        return t('customer.dashboard.status.delivered');
       case 'delayed':
-        return 'متأخر';
+        return t('customer.dashboard.status.delayed');
       case 'cancelled':
-        return 'ملغي';
+        return t('customer.dashboard.status.cancelled');
       default:
         return status;
     }
@@ -141,7 +143,7 @@ const CustomerDashboard = () => {
 
   const statCardsData = useMemo(() => [
     {
-      title: 'إجمالي الشحنات',
+      title: t('customer.dashboard.stats.totalShipments'),
       value: dashboardData?.statistics.totalShipments || 0,
       icon: Package,
       color: 'blue' as const,
@@ -151,7 +153,7 @@ const CustomerDashboard = () => {
       }
     },
     {
-      title: 'الشحنات النشطة',
+      title: t('customer.dashboard.stats.activeShipments'),
       value: dashboardData?.statistics.activeShipments || 0,
       icon: Ship,
       color: 'gold' as const,
@@ -161,7 +163,7 @@ const CustomerDashboard = () => {
       }
     },
     {
-      title: 'الشحنات المسلمة',
+      title: t('customer.dashboard.stats.deliveredShipments'),
       value: dashboardData?.statistics.deliveredShipments || 0,
       icon: CheckCircle,
       color: 'green' as const,
@@ -171,7 +173,7 @@ const CustomerDashboard = () => {
       }
     },
     {
-      title: 'إجمالي المدفوعات',
+      title: t('customer.dashboard.stats.totalPayments'),
       value: dashboardData?.statistics.totalPayments || 0,
       icon: CreditCard,
       color: 'purple' as const,
@@ -180,7 +182,7 @@ const CustomerDashboard = () => {
         type: 'decrease' as const
       }
     }
-  ], [dashboardData]);
+  ], [dashboardData, t]);
 
   const chartData = useMemo(() => [
     { name: 'يناير', value: 2400 },
@@ -202,7 +204,7 @@ const CustomerDashboard = () => {
   if (isLoading) {
     return (
       <CustomerLayout>
-        <LoadingSpinner text="جاري تحميل لوحة التحكم..." />
+        <LoadingSpinner text={t('customer.dashboard.loading')} />
       </CustomerLayout>
     );
   }
@@ -216,7 +218,7 @@ const CustomerDashboard = () => {
             onClick={fetchDashboardData}
             className="mt-4 bg-gold-600 text-white px-4 py-2 rounded-lg hover:bg-gold-700"
           >
-            إعادة المحاولة
+            {t('customer.dashboard.retry')}
           </button>
         </div>
       </CustomerLayout>
@@ -227,7 +229,7 @@ const CustomerDashboard = () => {
     return (
       <CustomerLayout>
         <div className="text-center py-12">
-          <p className="text-gray-600">لا توجد بيانات متاحة</p>
+          <p className="text-gray-600">{t('customer.dashboard.noData')}</p>
         </div>
       </CustomerLayout>
     );
@@ -236,7 +238,7 @@ const CustomerDashboard = () => {
   return (
     <CustomerLayout>
       <Head>
-        <title>لوحة التحكم - {dashboardData.customer.customerName}</title>
+        <title>{t('customer.dashboard.title', { customerName: dashboardData.customer.customerName })}</title>
         <meta name="description" content="لوحة تحكم العميل لمتابعة الشحنات" />
       </Head>
 
@@ -251,7 +253,7 @@ const CustomerDashboard = () => {
                 مرحباً، {dashboardData.customer.customerName}
               </h1>
               <p className="text-gold-100 text-lg font-medium">
-                رقم التتبع الخاص بك: {dashboardData.customer.trackingNumber}
+                {t('customer.dashboard.trackingNumber')}: {dashboardData.customer.trackingNumber}
               </p>
             </div>
           </div>
@@ -288,7 +290,7 @@ const CustomerDashboard = () => {
             />
             {paymentMethodsData.length > 0 && (
               <DashboardChart
-                title="طرق الدفع"
+                title={t('customer.dashboard.paymentMethods')}
                 data={paymentMethodsData}
                 type="pie"
                 height={300}
@@ -307,7 +309,7 @@ const CustomerDashboard = () => {
                   <DollarSign className="h-7 w-7 text-green-600 drop-shadow-sm" />
                 </div>
                 <div className="mr-4">
-                  <p className="text-sm font-semibold text-green-600/80 mb-1">إجمالي القيمة</p>
+                  <p className="text-sm font-semibold text-green-600/80 mb-1">{t('customer.dashboard.financial.totalValue')}</p>
                   <p className="text-3xl font-bold bg-gradient-to-r from-green-700 to-green-600 bg-clip-text text-transparent">
                     ${dashboardData.statistics.totalValue.toLocaleString()}
                   </p>
@@ -328,7 +330,7 @@ const CustomerDashboard = () => {
                   <Wallet className="h-7 w-7 text-blue-600 drop-shadow-sm" />
                 </div>
                 <div className="mr-4">
-                  <p className="text-sm font-semibold text-blue-600/80 mb-1">المدفوع</p>
+                  <p className="text-sm font-semibold text-blue-600/80 mb-1">{t('customer.dashboard.financial.paid')}</p>
                   <p className="text-3xl font-bold bg-gradient-to-r from-blue-700 to-blue-600 bg-clip-text text-transparent">
                     ${dashboardData.statistics.totalPaid.toLocaleString()}
                   </p>
@@ -337,7 +339,7 @@ const CustomerDashboard = () => {
               <CheckCircle className="h-6 w-6 text-blue-500 drop-shadow-sm group-hover:scale-110 transition-transform duration-300" />
             </div>
             <div className="text-sm text-blue-600/70 font-medium relative z-10">
-              المبلغ المدفوع فعلياً
+              {t('customer.dashboard.financial.actuallyPaid')}
             </div>
           </div>
 
@@ -349,7 +351,7 @@ const CustomerDashboard = () => {
                   <AlertCircle className="h-7 w-7 text-red-600 drop-shadow-sm" />
                 </div>
                 <div className="mr-4">
-                  <p className="text-sm font-semibold text-red-600/80 mb-1">المتبقي</p>
+                  <p className="text-sm font-semibold text-red-600/80 mb-1">{t('customer.dashboard.financial.remaining')}</p>
                   <p className="text-3xl font-bold bg-gradient-to-r from-red-700 to-red-600 bg-clip-text text-transparent">
                     ${dashboardData.statistics.totalPending.toLocaleString()}
                   </p>
@@ -358,7 +360,7 @@ const CustomerDashboard = () => {
               <TrendingDown className="h-6 w-6 text-red-500 drop-shadow-sm group-hover:scale-110 transition-transform duration-300" />
             </div>
             <div className="text-sm text-red-600/70 font-medium relative z-10">
-              المبلغ المتبقي للدفع
+              {t('customer.dashboard.financial.remainingToPay')}
             </div>
           </div>
         </div>
@@ -367,7 +369,7 @@ const CustomerDashboard = () => {
         {Object.keys(dashboardData.statistics.paymentMethods).length > 0 && (
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl shadow-purple-100/50 border border-purple-200/30 hover:shadow-2xl hover:shadow-purple-200/50 transition-all duration-300 group relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <h2 className="text-xl font-bold bg-gradient-to-r from-purple-700 to-purple-600 bg-clip-text text-transparent mb-6 relative z-10">طرق الدفع المستخدمة</h2>
+            <h2 className="text-xl font-bold bg-gradient-to-r from-purple-700 to-purple-600 bg-clip-text text-transparent mb-6 relative z-10">{t('customer.dashboard.paymentMethodsUsed')}</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 relative z-10">
               {Object.entries(dashboardData.statistics.paymentMethods).map(([method, count]) => (
                 <div key={method} className="text-center group/item hover:scale-105 transition-transform duration-300">
@@ -376,10 +378,10 @@ const CustomerDashboard = () => {
                   </div>
                   <p className="text-lg font-bold bg-gradient-to-r from-purple-700 to-purple-600 bg-clip-text text-transparent">{count}</p>
                   <p className="text-sm text-purple-600/70 font-medium">
-                    {method === 'cash' ? 'نقداً' :
-                     method === 'bank_transfer' ? 'تحويل بنكي' :
-                     method === 'credit_card' ? 'بطاقة ائتمان' :
-                     method === 'check' ? 'شيك' : method}
+                    {method === 'cash' ? t('customer.dashboard.paymentMethod.cash') :
+                     method === 'bank_transfer' ? t('customer.dashboard.paymentMethod.bankTransfer') :
+                     method === 'credit_card' ? t('customer.dashboard.paymentMethod.creditCard') :
+                     method === 'check' ? t('customer.dashboard.paymentMethod.check') : method}
                   </p>
                 </div>
               ))}
@@ -396,13 +398,13 @@ const CustomerDashboard = () => {
                 <div className="p-4 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl shadow-lg shadow-indigo-200/50 group-hover:scale-110 transition-transform duration-300">
                   <Package className="h-7 w-7 text-indigo-600 drop-shadow-sm" />
                 </div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-indigo-700 to-indigo-600 bg-clip-text text-transparent mr-4">الشحنات الأخيرة</h2>
+                <h2 className="text-xl font-bold bg-gradient-to-r from-indigo-700 to-indigo-600 bg-clip-text text-transparent mr-4">{t('customer.dashboard.recentShipments')}</h2>
               </div>
               <Link
                 href="/customer/shipments"
                 className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-lg shadow-indigo-200/50 hover:shadow-xl hover:shadow-indigo-300/50 hover:scale-105 font-medium"
               >
-                عرض الكل
+                {t('customer.dashboard.viewAll')}
               </Link>
             </div>
           </div>
@@ -411,7 +413,7 @@ const CustomerDashboard = () => {
             {dashboardData.recentShipments.length === 0 ? (
               <div className="text-center py-8">
                 <Package className="h-12 w-12 text-indigo-400 mx-auto mb-4" />
-                <p className="text-indigo-600/70">لا توجد شحنات حالياً</p>
+                <p className="text-indigo-600/70">{t('customer.dashboard.noShipments')}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -473,5 +475,5 @@ export const getStaticProps: GetStaticProps = async ({ locale }) => {
     },
   };
 };
-
-export default CustomerDashboard;
+  
+  export default CustomerDashboard;

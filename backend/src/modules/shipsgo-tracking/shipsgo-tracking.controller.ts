@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Logger, UseGuards, UsePipes, ValidationPipe, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Param, Query, Logger, UseGuards, UsePipes, ValidationPipe, BadRequestException, UseFilters } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { ShipsGoTrackingService, ShipsGoTrackingResponse } from './shipsgo-tracking.service';
 import { ShipsGoRateLimitGuard } from '../../common/guards/shipsgo-rate-limit.guard';
@@ -7,11 +7,13 @@ import { BLParamDto } from './dto/bl-param.dto';
 import { BookingParamDto } from './dto/booking-param.dto';
 import { TrackQueryDto } from './dto/track-query.dto';
 import { ShipsGoV2MapResponse, ShipsGoV2VesselInfo } from './dto/v2-types.dto';
+import { ShipsGoExceptionFilter } from '../../common/filters/shipsgo-exception.filter';
 
 @ApiTags('ShipsGo Tracking')
 @Controller('shipsgo-tracking')
 @UseGuards(ShipsGoRateLimitGuard)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+@UseFilters(ShipsGoExceptionFilter)
 export class ShipsGoTrackingController {
   private readonly logger = new Logger(ShipsGoTrackingController.name);
 

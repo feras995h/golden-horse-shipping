@@ -72,8 +72,10 @@ export class ShipsGoRateLimitGuard implements CanActivate {
   }
 
   private getClientId(request: any): string {
-    // Use IP address as client identifier
-    return request.ip || request.connection.remoteAddress || 'unknown';
+    // Respect X-Forwarded-For when behind reverse proxies
+    const fwd = request.headers?.['x-forwarded-for'];
+    const forwardedIp = Array.isArray(fwd) ? fwd[0] : (typeof fwd === 'string' ? fwd.split(',')[0].trim() : undefined);
+    return forwardedIp || request.ip || request.connection?.remoteAddress || 'unknown';
   }
 
   // Clean up old entries periodically

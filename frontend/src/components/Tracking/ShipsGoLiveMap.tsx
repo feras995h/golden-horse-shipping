@@ -20,7 +20,7 @@ interface ShipsGoMessage {
 
 const ShipsGoLiveMap: React.FC<ShipsGoLiveMapProps> = ({
   containerNumber,
-  defaultQuery = 'TEST1234567',
+  defaultQuery = process.env.NODE_ENV === 'production' ? '' : 'TEST1234567',
   height = '550px',
   className = '',
   showControls = true,
@@ -33,6 +33,7 @@ const ShipsGoLiveMap: React.FC<ShipsGoLiveMapProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [inputContainer, setInputContainer] = useState('');
+  const [mapFallbackUrl, setMapFallbackUrl] = useState<string | null>(null);
 
   // ShipsGo Messages Listener
   useEffect(() => {
@@ -80,9 +81,25 @@ const ShipsGoLiveMap: React.FC<ShipsGoLiveMapProps> = ({
   };
 
   // Handle iframe error
-  const handleIframeError = () => {
+  const handleIframeError = async () => {
     setIsLoading(false);
     setError('فشل في تحميل الخريطة. تأكد من صحة رقم الحاوية.');
+    // Try to fetch a static map fallback from backend
+    try {
+      if (currentContainer) {
+        const res = await fetch(`/api/shipsgo-tracking/container/${currentContainer}/map`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.staticImageUrl) {
+            setMapFallbackUrl(data.staticImageUrl);
+          } else if (data?.embedUrl) {
+            setMapFallbackUrl(data.embedUrl);
+          }
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
   };
 
   // Update container number
@@ -220,19 +237,32 @@ const ShipsGoLiveMap: React.FC<ShipsGoLiveMapProps> = ({
           </div>
         )}
 
-        <iframe
-          ref={iframeRef}
-          id="IframeShipsgoLiveMap"
-          style={{ 
-            height: isFullscreen ? '100vh' : height, 
-            width: '100%',
-            border: 'none'
-          }}
-          onLoad={handleIframeLoad}
-          onError={handleIframeError}
-          title="ShipsGo Live Map"
-          className="w-full"
-        />
+        {mapFallbackUrl ? (
+          <div className="w-full">
+            {/* Static fallback */}
+            <img
+              src={mapFallbackUrl}
+              alt="ShipsGo static map"
+              style={{ height: isFullscreen ? '100vh' : height, width: '100%', objectFit: 'cover' }}
+            />
+          </div>
+        ) : (
+          <iframe
+            ref={iframeRef}
+            id="IframeShipsgoLiveMap"
+            style={{ 
+              height: isFullscreen ? '100vh' : height, 
+              width: '100%',
+              border: 'none'
+            }}
+            onLoad={handleIframeLoad}
+            onError={handleIframeError}
+            title="ShipsGo Live Map"
+            className="w-full"
+            sandbox="allow-scripts allow-same-origin allow-popups"
+            referrerPolicy="no-referrer"
+          />
+        )}
 
         {/* Fullscreen overlay controls */}
         {isFullscreen && (

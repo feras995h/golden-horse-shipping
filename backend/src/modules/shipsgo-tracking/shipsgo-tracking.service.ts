@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
+import Redis from 'ioredis';
 import {
   ShipsGoApiException,
   ShipsGoRateLimitException,
@@ -104,24 +105,34 @@ export interface VesselInfo {
 export class ShipsGoTrackingService {
   private readonly logger = new Logger(ShipsGoTrackingService.name);
   private readonly shipsGoApiUrl: string;
-  private readonly shipsGoApiKey: string;
+  private readonly shipsGoApiKey?: string;
   private readonly fallbackToMock: boolean;
+  private readonly cacheTtlMs = 120_000; // 2 minutes
+  private readonly memoryCache = new Map<string, { exp: number; data: any }>();
+  private readonly redis?: Redis;
 
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
-    // Use real API credentials provided by user
+    // Configuration
     this.shipsGoApiUrl = this.configService.get<string>('SHIPSGO_API_URL', 'https://api.shipsgo.com/v1');
-    this.shipsGoApiKey = this.configService.get<string>('SHIPSGO_API_KEY', '6eada10b-588f-4c36-9086-38009015b545');
+    this.shipsGoApiKey = this.configService.get<string>('SHIPSGO_API_KEY');
     this.fallbackToMock = this.configService.get<boolean>('SHIPSGO_FALLBACK_TO_MOCK', false);
 
-    // Debug logging
-    this.logger.log(`ShipsGo Service Configuration:`);
-    this.logger.log(`  - API URL: ${this.shipsGoApiUrl}`);
-    this.logger.log(`  - API Key: ${this.shipsGoApiKey ? 'SET (' + this.shipsGoApiKey.substring(0, 8) + '...)' : 'NOT SET'}`);
-    this.logger.log(`  - Fallback to Mock: ${this.fallbackToMock}`);
-    this.logger.log(`  - Real API Key: ${this.shipsGoApiKey === '6eada10b-588f-4c36-9086-38009015b545' ? '✅ Using real credentials' : '❌ Using fallback'}`);
+    // Optional Redis cache
+    const redisUrl = this.configService.get<string>('REDIS_URL');
+    if (redisUrl) {
+      try {
+        this.redis = new Redis(redisUrl, { maxRetriesPerRequest: 1 });
+        this.redis.on('error', (err) => this.logger.error('Redis error (ShipsGo cache)', err as any));
+      } catch (e) {
+        this.logger.warn('Failed to initialize Redis for ShipsGo cache; falling back to in-memory cache');
+      }
+    }
+
+    // Safe logging
+    this.logger.log(`ShipsGo Service configured (API: ${this.shipsGoApiUrl}, cache: ${this.redis ? 'redis' : 'memory'}, fallbackToMock: ${this.fallbackToMock})`);
   }
 
   /**
@@ -129,17 +140,20 @@ export class ShipsGoTrackingService {
    */
   async trackByContainerNumber(containerNumber: string): Promise<ShipsGoTrackingResponse> {
     try {
-      // Use real API credentials
-      const apiKey = this.shipsGoApiKey;
-      const apiUrl = this.shipsGoApiUrl;
+      if (!this.shipsGoApiKey) {
+        throw new ShipsGoAuthException();
+      }
 
-      this.logger.log(`🔍 Debug - API Key: ${apiKey ? 'SET (' + apiKey.substring(0, 8) + '...)' : 'NOT SET'}`);
-      this.logger.log(`🔍 Debug - API URL: ${apiUrl}`);
-      this.logger.log(`🔍 Debug - Fallback to Mock: ${this.fallbackToMock}`);
+      // Cache lookup
+      const cacheKey = `shipsgo:track:container:${containerNumber}`;
+      const cached = await this.getCache(cacheKey);
+      if (cached) return cached;
 
       // Use v2 API for more accurate data
-      this.logger.log(`🚀 Using ShipsGo API v2 for container ${containerNumber}`);
-      return this.trackByContainerNumberV2(containerNumber);
+      this.logger.log(`Tracking container via ShipsGo v2: ${containerNumber}`);
+      const res = await this.trackByContainerNumberV2(containerNumber);
+      await this.setCache(cacheKey, res);
+      return res;
 
     } catch (error) {
       this.logger.error(`Error tracking container ${containerNumber}:`, error.message);
@@ -171,7 +185,7 @@ export class ShipsGoTrackingService {
             include_milestones: 'true',
           },
           headers: {
-            'X-Shipsgo-User-Token': this.shipsGoApiKey,
+            'X-Shipsgo-User-Token': this.shipsGoApiKey as string,
             'Content-Type': 'application/json',
           },
           timeout: 15000,
@@ -354,19 +368,25 @@ export class ShipsGoTrackingService {
         throw new ShipsGoAuthException();
       }
 
+      const cacheKey = `shipsgo:track:bl:${blNumber}`;
+      const cached = await this.getCache(cacheKey);
+      if (cached) return cached;
+
       const response = await firstValueFrom(
         this.httpService.get(`${this.shipsGoApiUrl}/track`, {
           params: {
             bl_number: blNumber,
           },
           headers: {
-          'X-Shipsgo-User-Token': this.shipsGoApiKey,
-          'Content-Type': 'application/json',
-        },
+            'X-Shipsgo-User-Token': this.shipsGoApiKey as string,
+            'Content-Type': 'application/json',
+          },
         }),
       );
 
-      return this.transformShipsGoResponse(response.data);
+      const res = this.transformShipsGoResponse(response.data);
+      await this.setCache(cacheKey, res);
+      return res;
     } catch (error) {
       this.logger.error(`Failed to track BL ${blNumber} from ShipsGo API`, error);
       if (error.response?.status === 401) {
@@ -391,19 +411,25 @@ export class ShipsGoTrackingService {
         throw new ShipsGoAuthException();
       }
 
+      const cacheKey = `shipsgo:track:booking:${bookingNumber}`;
+      const cached = await this.getCache(cacheKey);
+      if (cached) return cached;
+
       const response = await firstValueFrom(
         this.httpService.get(`${this.shipsGoApiUrl}/track`, {
           params: {
             booking_number: bookingNumber,
           },
           headers: {
-          'X-Shipsgo-User-Token': this.shipsGoApiKey,
-          'Accept': 'application/json',
-        },
+            'X-Shipsgo-User-Token': this.shipsGoApiKey as string,
+            'Accept': 'application/json',
+          },
         }),
       );
 
-      return this.transformShipsGoResponse(response.data);
+      const res = this.transformShipsGoResponse(response.data);
+      await this.setCache(cacheKey, res);
+      return res;
     } catch (error) {
       this.logger.error(`Failed to track booking ${bookingNumber} from ShipsGo API`, error);
       if (error.response?.status === 401) {
@@ -424,23 +450,23 @@ export class ShipsGoTrackingService {
    */
   async getVesselPosition(mmsi: string): Promise<VesselPosition | null> {
     try {
-      const trackingData = await this.trackByContainerNumber(mmsi);
-      
-      if (trackingData.success && trackingData.data.location) {
+      const info = await this.getVesselInfo(mmsi);
+      if (info?.currentPosition) {
         return {
           mmsi,
-          name: trackingData.data.vessel_name || 'Unknown Vessel',
-          latitude: trackingData.data.location.latitude,
-          longitude: trackingData.data.location.longitude,
-          course: 0, // ShipsGo doesn't provide course data
-          speed: 0, // ShipsGo doesn't provide speed data
-          timestamp: new Date(trackingData.data.location.timestamp),
-          status: trackingData.data.status,
-          destination: trackingData.data.port_of_discharge,
-          eta: trackingData.data.estimated_arrival ? new Date(trackingData.data.estimated_arrival) : undefined,
-        };
+          imo: info.imo,
+          name: info.name,
+          latitude: info.currentPosition.latitude,
+          longitude: info.currentPosition.longitude,
+          course: info.currentPosition.course ?? 0,
+          speed: info.currentPosition.speed ?? 0,
+          heading: info.currentPosition.heading,
+          timestamp: new Date(info.currentPosition.timestamp),
+          status: info.status,
+          destination: info.destination,
+          eta: info.eta ? new Date(info.eta) : undefined,
+        } as VesselPosition;
       }
-      
       return null;
     } catch (error) {
       this.logger.error(`Failed to get vessel position for MMSI ${mmsi}`, error);
@@ -588,6 +614,14 @@ export class ShipsGoTrackingService {
    */
   async getContainerMap(containerNumber: string): Promise<ShipsGoV2MapResponse | null> {
     try {
+      if (!this.shipsGoApiKey) {
+        throw new ShipsGoAuthException();
+      }
+
+      const cacheKey = `shipsgo:map:container:${containerNumber}`;
+      const cached = await this.getCache(cacheKey);
+      if (cached) return cached;
+
       const response = await firstValueFrom(
         this.httpService.get(`${this.shipsGoApiUrl}/track`, {
           params: {
@@ -595,7 +629,7 @@ export class ShipsGoTrackingService {
             include_map: 'true',
           },
           headers: {
-            'X-Shipsgo-User-Token': this.shipsGoApiKey,
+            'X-Shipsgo-User-Token': this.shipsGoApiKey as string,
             'Content-Type': 'application/json',
           },
           timeout: 15000,
@@ -603,7 +637,7 @@ export class ShipsGoTrackingService {
       );
 
       if (response.data?.data?.mapUrl) {
-        return {
+        const map: ShipsGoV2MapResponse = {
           mapUrl: response.data.data.mapUrl,
           embedUrl: response.data.data.mapUrl.replace('/map/', '/embed/'),
           staticImageUrl: response.data.data.mapUrl.replace('/map/', '/static/'),
@@ -615,11 +649,13 @@ export class ShipsGoTrackingService {
             west: response.data.data.currentPosition?.longitude - 5 || -180,
           },
         };
+        await this.setCache(cacheKey, map);
+        return map;
       }
 
       return null;
     } catch (error) {
-      this.logger.error(`Failed to get map data for container ${containerNumber}:`, error.message);
+      this.logger.error(`Failed to get map data for container ${containerNumber}:`, (error as any).message);
       return null;
     }
   }
@@ -711,4 +747,31 @@ export class ShipsGoTrackingService {
     return mockData;
   }
 
+  private async getCache<T = any>(key: string): Promise<T | null> {
+    try {
+      if (this.redis) {
+        const raw = await this.redis.get(key);
+        return raw ? (JSON.parse(raw) as T) : null;
+      }
+      const now = Date.now();
+      const entry = this.memoryCache.get(key);
+      if (entry && entry.exp > now) return entry.data as T;
+      if (entry) this.memoryCache.delete(key);
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async setCache<T = any>(key: string, data: T): Promise<void> {
+    try {
+      if (this.redis) {
+        await this.redis.setex(key, Math.floor(this.cacheTtlMs / 1000), JSON.stringify(data));
+        return;
+      }
+      this.memoryCache.set(key, { exp: Date.now() + this.cacheTtlMs, data });
+    } catch {
+      // ignore cache errors
+    }
+  }
 }

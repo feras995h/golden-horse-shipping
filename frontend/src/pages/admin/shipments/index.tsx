@@ -369,10 +369,20 @@ const ShipmentsPage = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
-                            ${shipment.totalCost}
+                            {(Number(shipment.totalCost) + Number(shipment.additionalCharges || 0)).toFixed(2)} {shipment.currency}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {shipment.currency}
+                          <div className="text-xs text-gray-500">
+                            {(() => {
+                              const paid = (shipment.paymentRecords || []).reduce((s: number, r: any) => s + Number(r.amount), 0) + Number(shipment.adminAmountPaid || 0);
+                              return `مدفوع: ${paid.toFixed(2)}`;
+                            })()}
+                            {' | '}
+                            {(() => {
+                              const totalDue = Number(shipment.totalCost) + Number(shipment.additionalCharges || 0);
+                              const paid = (shipment.paymentRecords || []).reduce((s: number, r: any) => s + Number(r.amount), 0) + Number(shipment.adminAmountPaid || 0);
+                              const remaining = Math.max(totalDue - paid, 0);
+                              return `متبقي: ${remaining.toFixed(2)}`;
+                            })()}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

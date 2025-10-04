@@ -32,6 +32,8 @@ interface ShipmentFormData {
   value: number;
   currency: string;
   totalCost: number;
+  additionalCharges?: number;
+  adminAmountPaid?: number;
   estimatedDeparture?: string;
   estimatedArrival?: string;
   vesselName?: string;
@@ -62,6 +64,8 @@ const NewShipmentPage = () => {
     value: 0,
     currency: 'USD',
     totalCost: 0,
+    additionalCharges: 0,
+    adminAmountPaid: 0,
     estimatedDeparture: '',
     estimatedArrival: '',
     vesselName: '',
@@ -422,6 +426,51 @@ const NewShipmentPage = () => {
                 {errors.totalCost && (
                   <p className="mt-1 text-sm text-red-600">{errors.totalCost}</p>
                 )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  رسوم إضافية
+                </label>
+                <input
+                  type="number"
+                  name="additionalCharges"
+                  value={formData.additionalCharges}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  className="input-field"
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  المبلغ المدفوع (إدخال سريع)
+                </label>
+                <input
+                  type="number"
+                  name="adminAmountPaid"
+                  value={formData.adminAmountPaid}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  className="input-field"
+                  placeholder="0.00"
+                />
+                <p className="text-xs text-gray-500 mt-1">يمكن أيضاً إضافة مدفوعات تفصيلية لاحقاً من سجل المدفوعات.</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  المبلغ المتبقي (محسوب)
+                </label>
+                <input
+                  type="text"
+                  value={((formData.totalCost || 0) + (formData.additionalCharges || 0) - (formData.adminAmountPaid || 0)).toFixed(2)}
+                  readOnly
+                  className="input-field bg-gray-50"
+                />
               </div>
             </div>
           </div>

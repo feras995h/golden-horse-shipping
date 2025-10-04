@@ -222,11 +222,15 @@ export class ShipmentsService {
 
   private async updateShipmentPaymentStatus(shipmentId: string): Promise<void> {
     const shipment = await this.findOne(shipmentId);
-    const totalPaid = shipment.paymentRecords.reduce((sum, record) => sum + Number(record.amount), 0);
-    const totalCost = Number(shipment.totalCost);
+    const recordsPaid = shipment.paymentRecords.reduce((sum, record) => sum + Number(record.amount), 0);
+    const adminPaid = Number((shipment as any).adminAmountPaid || 0);
+    const additional = Number((shipment as any).additionalCharges || 0);
+
+    const totalPaid = recordsPaid + adminPaid;
+    const totalDue = Number(shipment.totalCost) + additional;
 
     let paymentStatus: PaymentStatus;
-    if (totalPaid >= totalCost) {
+    if (totalPaid >= totalDue) {
       paymentStatus = PaymentStatus.PAID;
     } else if (totalPaid > 0) {
       paymentStatus = PaymentStatus.PARTIAL;

@@ -105,6 +105,14 @@ export class Shipment {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   totalCost: number;
 
+  @ApiProperty({ description: 'Additional charges added by admin', default: 0 })
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  additionalCharges: number;
+
+  @ApiProperty({ description: 'Additional amount marked as paid by admin (outside formal records)', default: 0 })
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  adminAmountPaid: number;
+
   @ApiProperty({ enum: PaymentStatus })
   @Column({
     type: 'varchar',

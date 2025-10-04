@@ -53,6 +53,18 @@ export class CreateShipmentDto {
   @Min(0)
   totalCost: number;
 
+  @ApiProperty({ description: 'Additional charges added by admin', required: false, default: 0 })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  additionalCharges?: number = 0;
+
+  @ApiProperty({ description: 'Amount paid recorded by admin outside payment records', required: false, default: 0 })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  adminAmountPaid?: number = 0;
+
   @ApiProperty({ description: 'Estimated departure date', required: false })
   @IsDateString()
   @IsOptional()

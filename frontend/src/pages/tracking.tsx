@@ -11,6 +11,7 @@ import TrackingNotifications from '@/components/Notifications/TrackingNotificati
 import { Search, Package, MapPin, Clock, DollarSign, Ship, AlertCircle, User } from 'lucide-react';
 import { useQuery } from 'react-query';
 import axios from 'axios';
+import { shipsGoAPI } from '@/lib/api';
 
 interface TrackingResult {
   type: 'shipment' | 'client';
@@ -56,13 +57,11 @@ const TrackingPage = () => {
                searchQuery.match(/^[A-Z0-9-]+$/) ||        // BL or booking pattern
                searchQuery.length >= 6) {
         try {
-          // Try ShipsGo tracking first
-          const shipsGoResponse = await axios.get('/api/shipsgo-tracking/track', {
-            params: {
-              container: searchQuery.match(/^[A-Z]{4}[0-9]{7}$/) ? searchQuery : undefined,
-              bl: !searchQuery.match(/^[A-Z]{4}[0-9]{7}$/) ? searchQuery : undefined
-            }
-          });
+          // Try ShipsGo tracking first (unified API)
+          const params: { container?: string; bl?: string; booking?: string } = {};
+          if (searchQuery.match(/^[A-Z]{4}[0-9]{7}$/)) params.container = searchQuery;
+          else params.bl = searchQuery;
+          const shipsGoResponse = await shipsGoAPI.trackShipment(params);
           setTrackingResult({
             type: 'shipment',
             data: shipsGoResponse.data,
@@ -92,11 +91,12 @@ const TrackingPage = () => {
       if (axios.isAxiosError(err) && err.response) {
         const status = err.response.status;
         const errorData = err.response.data;
+        const suggestion = (errorData?.suggestion as string) || '';
         
         if (status === 401 || status === 403) {
           setError('غير مصرح لك بالوصول إلى هذه البيانات. تأكد من صحة رقم التتبع.');
         } else if (status === 429) {
-          setError('تم إرسال عدد كبير من الطلبات. يرجى المحاولة مرة أخرى بعد دقيقة.');
+          setError(suggestion || 'تم إرسال عدد كبير من الطلبات. يرجى المحاولة مرة أخرى بعد دقيقة.');
         } else if (status === 404) {
           if (errorData?.error?.includes('Container not found') || errorData?.message?.includes('not found')) {
             setError(`لم يتم العثور على بيانات تتبع للرقم "${searchQuery}". تأكد من صحة الرقم أو تواصل مع خدمة العملاء.`);
@@ -105,14 +105,14 @@ const TrackingPage = () => {
           }
         } else if (status === 500) {
           if (errorData?.error?.includes('ShipsGo API')) {
-            setError('خدمة التتبع غير متاحة مؤقتاً. يرجى المحاولة مرة أخرى لاحقاً أو التواصل مع خدمة العملاء.');
+            setError(suggestion || 'خدمة التتبع غير متاحة مؤقتاً. يرجى المحاولة مرة أخرى لاحقاً أو التواصل مع خدمة العملاء.');
           } else {
             setError('حدث خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.');
           }
         } else if (status === 502 || status === 503) {
           setError('الخدمة غير متاحة مؤقتاً. يرجى المحاولة مرة أخرى بعد قليل.');
         } else {
-          setError(`حدث خطأ غير متوقع (${status}). يرجى التواصل مع خدمة العملاء إذا استمرت المشكلة.`);
+          setError(suggestion || `حدث خطأ غير متوقع (${status}). يرجى التواصل مع خدمة العملاء إذا استمرت المشكلة.`);
         }
       } else if (err.code === 'NETWORK_ERROR' || err.message?.includes('Network Error')) {
         setError('مشكلة في الاتصال بالإنترنت. تأكد من اتصالك وحاول مرة أخرى.');

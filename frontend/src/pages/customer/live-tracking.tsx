@@ -307,17 +307,22 @@ const LiveTrackingPage = () => {
               <p className="text-2xl font-bold text-gray-900">{selectedShipment.trackingNumber}</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-              <div className="flex items-center mb-4">
-                <div className="p-3 bg-green-100 rounded-xl">
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                </div>
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <div className="p-3 bg-green-100 rounded-xl">
+                <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">الحاوية</h3>
-              <p className="text-2xl font-bold text-gray-900">
-                {selectedShipment.containerNumber || 'غير متوفر'}
-              </p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-0 mr-3">الحاوية</h3>
             </div>
+            {trackingData?.timestamp && (
+              <span className="text-xs text-gray-500">آخر تحديث: {new Date(trackingData.timestamp).toLocaleTimeString('ar-EG')}</span>
+            )}
+          </div>
+          <p className="text-2xl font-bold text-gray-900">
+            {selectedShipment.containerNumber || 'غير متوفر'}
+          </p>
+        </div>
 
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
               <div className="flex items-center mb-4">

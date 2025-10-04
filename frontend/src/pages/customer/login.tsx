@@ -173,6 +173,7 @@ const CustomerLogin = () => {
                         required
                         value={formData.customerNumber}
                         onChange={handleInputChange}
+                        autoComplete="username"
                         className="w-full px-4 py-4 pr-12 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-blue-200/60 focus:outline-none focus:ring-2 focus:ring-gold-400/50 focus:border-gold-400/50 transition-all duration-300 hover:bg-white/15"
                         placeholder={t('customer.login.customerNumberPlaceholder')}
                       />

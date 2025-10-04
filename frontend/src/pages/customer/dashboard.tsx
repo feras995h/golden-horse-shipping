@@ -75,7 +75,7 @@ const CustomerDashboard = () => {
         return;
       }
 
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/customer/dashboard`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/customer-portal/dashboard`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

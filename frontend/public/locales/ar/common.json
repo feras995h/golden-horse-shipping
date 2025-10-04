@@ -288,6 +288,12 @@
         "deliveredShipments": "الشحنات المسلمة",
         "totalPayments": "إجمالي المدفوعات"
       },
+      "stats": {
+        "totalShipments": "إجمالي الشحنات",
+        "activeShipments": "الشحنات النشطة",
+        "deliveredShipments": "الشحنات المسلمة",
+        "totalPayments": "إجمالي المدفوعات"
+      },
       "charts": {
         "monthlyShipments": "الشحنات الشهرية",
         "paymentMethods": "طرق الدفع"
